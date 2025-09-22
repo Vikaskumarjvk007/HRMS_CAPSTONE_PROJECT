@@ -1,0 +1,43 @@
+name: Payroll CI/CD
+
+# Trigger workflow on push or pull request to main
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build-and-run:
+    runs-on: windows-latest
+
+    steps:
+      # 1️⃣ Checkout the code
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      # 2️⃣ Set up Java
+      - name: Set up Java
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      # 3️⃣ Cache Maven dependencies
+      - name: Cache Maven packages
+        uses: actions/cache@v3
+        with:
+          path: ~/.m2/repository
+          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+          restore-keys: |
+            ${{ runner.os }}-maven-
+
+      # 4️⃣ Build project using Maven
+      - name: Build with Maven
+        run: mvn clean compile
+
+      # 5️⃣ Run PayrollJob
+      - name: Run PayrollJob
+        run: mvn exec:java -Dexec.mainClass="com.hrms.model.job.PayrollJob"
