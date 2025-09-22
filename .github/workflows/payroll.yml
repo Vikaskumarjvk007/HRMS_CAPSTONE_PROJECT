@@ -1,43 +1,27 @@
-name: Payroll CI/CD
+name: Monthly Payroll Generation
 
-# Trigger workflow on push or pull request to main
 on:
-  push:
-    branches:
-      - main
-  pull_request:
-    branches:
-      - main
+  schedule:
+    # Run at 00:00 UTC on the 1st day of every month
+    - cron: '0 0 1 * *'
+  workflow_dispatch:  # keep this so you can run it manually too
 
 jobs:
-  build-and-run:
-    runs-on: windows-latest
+  build-run-payroll:
+    runs-on: ubuntu-latest
 
     steps:
-      # 1️⃣ Checkout the code
-      - name: Checkout repository
+      - name: Check out repository
         uses: actions/checkout@v3
 
-      # 2️⃣ Set up Java
       - name: Set up Java
         uses: actions/setup-java@v3
         with:
-          distribution: 'temurin'
           java-version: '17'
+          distribution: 'temurin'
 
-      # 3️⃣ Cache Maven dependencies
-      - name: Cache Maven packages
-        uses: actions/cache@v3
-        with:
-          path: ~/.m2/repository
-          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
-          restore-keys: |
-            ${{ runner.os }}-maven-
-
-      # 4️⃣ Build project using Maven
       - name: Build with Maven
-        run: mvn clean compile
+        run: mvn -B package --file pom.xml
 
-      # 5️⃣ Run PayrollJob
-      - name: Run PayrollJob
-        run: mvn exec:java -Dexec.mainClass="com.hrms.model.job.PayrollJob"
+      - name: Run Payroll Job
+        run: java -cp target/classes com.hrms.model.job.PayrollJob
