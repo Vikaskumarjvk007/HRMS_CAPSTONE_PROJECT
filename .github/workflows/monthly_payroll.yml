@@ -9,14 +9,14 @@ on:
     branches:
       - main
       - master
+  workflow_dispatch:
   schedule:
-    - cron: '0 0 1 * *'  # monthly at 00:00 UTC
-  workflow_dispatch:   # ✅ manual trigger
+    - cron: '0 0 1 * *'  # Monthly at 00:00 UTC
 
 jobs:
   build:
     name: Build Project
-    runs-on: windows-latest   # ← changed to Windows
+    runs-on: windows-latest
 
     steps:
       - name: Check out repository
@@ -38,10 +38,17 @@ jobs:
           name: payroll-build
           path: target/*.jar
 
+      - name: Upload Surefire Test Reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-reports
+          path: target/surefire-reports/
+
   run-payroll:
     name: Run Payroll Job
     needs: build
-    runs-on: windows-latest   # ← changed to Windows
+    runs-on: windows-latest
 
     steps:
       - name: Check out repository
