@@ -1,64 +1,84 @@
-name: Payroll CI/CD
+name: HRMS Full CI/CD
 
 on:
   push:
     branches:
-      - main
-      - master
-  pull_request:
-    branches:
-      - main
       - master
   workflow_dispatch:
-  schedule:
-    - cron: '0 0 1 * *'  # Monthly at 00:00 UTC
 
 jobs:
-  build:
-    name: Build Project
+
+  build-test:
+    name: Build & Test Payroll Project
     runs-on: windows-latest
 
     steps:
-      - name: Check out repository
-        uses: actions/checkout@v4
+      - name: Checkout Repository
+        uses: actions/checkout@v3
 
-      - name: Set up Java 21
-        uses: actions/setup-java@v4
+      - name: Setup Java 21
+        uses: actions/setup-java@v3
         with:
-          java-version: '21'
-          distribution: 'temurin'
-          cache: maven
+          distribution: temurin
+          java-version: 21
+
+      - name: Cache Maven Packages
+        uses: actions/cache@v3
+        with:
+          path: ~/.m2/repository
+          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+          restore-keys: |
+            ${{ runner.os }}-maven-
 
       - name: Build with Maven
-        run: mvn -B clean package --file pom.xml
+        run: mvn clean install -B
 
-      - name: Upload build artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: payroll-build
-          path: target/*.jar
+      - name: Run Tests
+        run: mvn test
 
-      - name: Upload Surefire Test Reports
-        if: always()
-        uses: actions/upload-artifact@v4
+      - name: Upload Test Results
+        uses: actions/upload-artifact@v3
         with:
-          name: test-reports
+          name: surefire-reports
           path: target/surefire-reports/
 
-  run-payroll:
-    name: Run Payroll Job
-    needs: build
+  monthly-payroll:
+    name: Monthly Payroll Generation
     runs-on: windows-latest
+    needs: build-test
 
     steps:
-      - name: Check out repository
-        uses: actions/checkout@v4
+      - name: Checkout Repository
+        uses: actions/checkout@v3
 
-      - name: Set up Java 21
-        uses: actions/setup-java@v4
+      - name: Setup Java 21
+        uses: actions/setup-java@v3
         with:
-          java-version: '21'
-          distribution: 'temurin'
+          distribution: temurin
+          java-version: 21
 
-      - name: Run Payroll Job
-        run: java -cp target/classes com.hrms.model.job.PayrollJob
+      - name: Build Project
+        run: mvn clean install -B
+
+      - name: Generate Monthly Payroll
+        run: java -cp target/hrms_project-1.0-SNAPSHOT.jar com.hrms.model.service.MonthlyPayrollJob
+
+  qodana:
+    name: Qodana Code Quality
+    runs-on: windows-latest
+    container:
+      image: jetbrains/qodana-jvm:2025.1
+    needs: build-test
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+
+      - name: Run Qodana Analysis
+        run: qodana scan --save-report
+
+      - name: Upload Qodana Report
+        uses: actions/upload-artifact@v3
+        with:
+          name: qodana-report
+          path: .qodana/report

@@ -33,6 +33,12 @@ public class Payroll {
         this.departmentName = departmentName;
     }
 
+
+    public Payroll() {
+        // empty constructor for testing / frameworks
+    }
+
+
     // ✅ Constructor for creating new payroll (without JOIN info)
     public Payroll(int employeeId, double basic, double hra, double allowances,
                    double deductions, double netSalary, LocalDate payDate) {
