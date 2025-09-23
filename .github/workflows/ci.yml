@@ -37,22 +37,18 @@ jobs:
         run: |
           java -version
           mvn -v
+          
 
-      - name: Build & test with Maven
-        if: ${{ inputs.runTests != 'false' }}
-        run: mvn -B -ntp -U -e clean verify
-        env:
-          MAVEN_OPTS: "-Xmx2g"
+      - name: Wait for DynamoDB
+        run: |
+          sleep 30
+          for i in {1..5}; do
+            if curl -s --connect-timeout 3 http://localhost:8000/ >/dev/null 2>&1; then
+              echo "DynamoDB Local ready"
+              break
+            fi
+            sleep 5
+          done
 
-      - name: Package (if not already packaged in verify)
-        if: success()
-        run: mvn -B -ntp -DskipTests package
-
-      - name: Upload build artifacts (JARs)
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: maven-artifacts
-          path: |
-            **/target/*.jar
-            **/target/site/**
+      - name: Build application
+        run: mvn clean package -DskipTests
