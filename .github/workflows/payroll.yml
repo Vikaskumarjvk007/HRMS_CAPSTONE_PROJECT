@@ -4,7 +4,7 @@ on:
   push:
     branches:
       - master
-  workflow_dispatch:
+  workflow_dispatch:   # ✅ allows manual triggering
 
 jobs:
 
@@ -37,7 +37,7 @@ jobs:
         run: mvn test
 
       - name: Upload Test Results
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4   # ✅ upgraded to v4
         with:
           name: surefire-reports
           path: target/surefire-reports/
@@ -45,7 +45,7 @@ jobs:
   monthly-payroll:
     name: Monthly Payroll Generation
     runs-on: windows-latest
-    needs: build-test
+    needs: build-test   # ✅ ensures build-test runs first
 
     steps:
       - name: Checkout Repository
@@ -68,7 +68,7 @@ jobs:
     runs-on: windows-latest
     container:
       image: jetbrains/qodana-jvm:2025.1
-    needs: build-test
+    needs: build-test   # ✅ runs after build-test
 
     steps:
       - name: Checkout Repository
@@ -78,7 +78,7 @@ jobs:
         run: qodana scan --save-report
 
       - name: Upload Qodana Report
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4   # ✅ upgraded to v4
         with:
           name: qodana-report
           path: .qodana/report

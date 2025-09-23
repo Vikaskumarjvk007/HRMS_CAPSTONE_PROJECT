@@ -18,8 +18,9 @@ jobs:
       - name: Run Qodana Analysis
         run: |
           qodana scan --save-report
+
       - name: Upload Qodana Report
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4   # ✅ upgraded to v4
         with:
           name: qodana-report
           path: .qodana/report
