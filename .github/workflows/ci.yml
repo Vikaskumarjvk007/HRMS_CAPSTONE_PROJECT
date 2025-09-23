@@ -5,6 +5,12 @@ on:
     branches: [ master ]
   pull_request:
     branches: [ master ]
+  workflow_dispatch:
+    inputs:
+      runTests:
+        description: "Run tests (true/false)"
+        required: false
+        default: "true"
 
 # Prevent duplicate runs on the same branch/PR
 concurrency:
@@ -16,7 +22,6 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
-
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
@@ -34,6 +39,7 @@ jobs:
           mvn -v
 
       - name: Build & test with Maven
+        if: ${{ inputs.runTests != 'false' }}
         run: mvn -B -ntp -U -e clean verify
         env:
           MAVEN_OPTS: "-Xmx2g"
