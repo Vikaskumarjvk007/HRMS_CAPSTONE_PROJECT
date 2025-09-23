@@ -1,4 +1,4 @@
-name: Qodana Code Quality
+name: Monthly Payroll Generation
 
 on:
   push:
@@ -9,6 +9,8 @@ on:
     branches:
       - main
       - master
+  schedule:
+    - cron: '0 0 1 * *'  # monthly at 00:00 UTC
   workflow_dispatch:   # ✅ manual trigger
 
 jobs:
@@ -33,11 +35,11 @@ jobs:
       - name: Upload build artifact
         uses: actions/upload-artifact@v4
         with:
-          name: project-build
+          name: payroll-build
           path: target/*.jar
 
-  qodana-scan:
-    name: Run Qodana Scan
+  run-payroll:
+    name: Run Payroll Job
     needs: build
     runs-on: ubuntu-latest
 
@@ -51,7 +53,5 @@ jobs:
           java-version: '21'
           distribution: 'temurin'
 
-      - name: Run Qodana Scan
-        uses: JetBrains/qodana-action@v2024.2
-        with:
-          cache-default-branch-only: true
+      - name: Run Payroll Job
+        run: java -cp target/classes com.hrms.model.job.PayrollJob
