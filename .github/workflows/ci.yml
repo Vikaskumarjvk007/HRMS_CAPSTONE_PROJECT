@@ -52,3 +52,6 @@ jobs:
 
       - name: Build application
         run: mvn clean package -DskipTests
+
+      - name: Run Payroll Job
+        run: java -cp target/classes com.hrms.model.service.PayrollJob
