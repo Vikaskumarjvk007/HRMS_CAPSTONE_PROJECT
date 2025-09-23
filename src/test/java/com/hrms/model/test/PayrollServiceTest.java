@@ -16,6 +16,10 @@ class PayrollServiceTest {
 
     private PayrollService payrollService;
     private PayrollDAO payrollDAO;
+
+    private static final int TEST_EMPLOYEE_ID = 3;
+    private static final double TEST_ANNUAL_SALARY = 300_000.0;
+
     private static final ByteArrayOutputStream outContent = new ByteArrayOutputStream();
     private static final PrintStream originalOut = System.out;
 
@@ -27,8 +31,14 @@ class PayrollServiceTest {
     @BeforeEach
     void init() {
         payrollService = new PayrollService();
-        payrollDAO     = new PayrollDAO();
+        payrollDAO = new PayrollDAO();
         outContent.reset();
+
+        // Clean up previous test payrolls for consistent test results
+        List<Payroll> existingPayrolls = payrollDAO.getPayrollByEmployee(TEST_EMPLOYEE_ID);
+        for (Payroll p : existingPayrolls) {
+            payrollDAO.deletePayroll(p.getId());
+        }
     }
 
     @AfterAll
@@ -37,60 +47,73 @@ class PayrollServiceTest {
     }
 
     @Test
+    @DisplayName("Generate payroll for a valid employee")
     void testGeneratePayrollForEmployee() {
-        payrollService.generatePayroll(3);
-        List<Payroll> payrolls = payrollDAO.getPayrollByEmployee(3);
-        assertFalse(payrolls.isEmpty());
+        payrollService.generatePayroll(TEST_EMPLOYEE_ID);
+        List<Payroll> payrolls = payrollDAO.getPayrollByEmployee(TEST_EMPLOYEE_ID);
+        assertFalse(payrolls.isEmpty(), "Payroll list should not be empty for a valid employee");
+
         Payroll p = payrolls.get(0);
 
-        double monthlyBasic = 300000.0 / 12.0;
-        double hra          = monthlyBasic * 0.20;
-        double allowances   = monthlyBasic * 0.10;
-        double deductions   = monthlyBasic * 0.05;
-        double netSalary    = monthlyBasic + hra + allowances - deductions;
+        double monthlyBasic = TEST_ANNUAL_SALARY / 12;
+        double hra = monthlyBasic * 0.20;
+        double allowances = monthlyBasic * 0.10;
+        double deductions = monthlyBasic * 0.05;
+        double netSalary = monthlyBasic + hra + allowances - deductions;
 
-        assertEquals(monthlyBasic, p.getBasic(), 0.01);
-        assertEquals(hra, p.getHra(), 0.01);
-        assertEquals(allowances, p.getAllowances(), 0.01);
-        assertEquals(deductions, p.getDeductions(), 0.01);
-        assertEquals(netSalary, p.getNetSalary(), 0.01);
+        assertEquals(monthlyBasic, p.getBasic(), 0.01, "Basic salary mismatch");
+        assertEquals(hra, p.getHra(), 0.01, "HRA mismatch");
+        assertEquals(allowances, p.getAllowances(), 0.01, "Allowances mismatch");
+        assertEquals(deductions, p.getDeductions(), 0.01, "Deductions mismatch");
+        assertEquals(netSalary, p.getNetSalary(), 0.01, "Net salary mismatch");
 
         String output = outContent.toString();
-        assertTrue(output.contains("empId=3"));
+        assertTrue(output.contains("empId=" + TEST_EMPLOYEE_ID), "Output should contain employee ID");
     }
 
     @Test
+    @DisplayName("Generate payroll for invalid employee")
     void testGeneratePayrollForInvalidEmployee() {
-        payrollService.generatePayroll(99999);
-        List<Payroll> payrolls = payrollDAO.getPayrollByEmployee(99999);
-        assertTrue(payrolls.isEmpty());
-        assertTrue(outContent.toString().contains("Employee not found"));
+        int invalidEmpId = 99999;
+        payrollService.generatePayroll(invalidEmpId);
+
+        List<Payroll> payrolls = payrollDAO.getPayrollByEmployee(invalidEmpId);
+        assertTrue(payrolls.isEmpty(), "Payroll should be empty for invalid employee");
+
+        assertTrue(outContent.toString().contains("Employee not found"), "Console should print 'Employee not found'");
     }
 
     @Test
+    @DisplayName("Generate payroll for all employees")
     void testGeneratePayrollForAllEmployees() {
         payrollService.generatePayrollForAll();
-        List<Payroll> all = payrollDAO.getAllPayrolls();
-        assertFalse(all.isEmpty());
-        assertTrue(outContent.toString().contains("Payroll generated for all employees"));
+        List<Payroll> allPayrolls = payrollDAO.getAllPayrolls();
+        assertFalse(allPayrolls.isEmpty(), "Payroll list should not be empty after generating for all employees");
+
+        assertTrue(outContent.toString().contains("Payroll generated for all employees"),
+                "Console should indicate payroll generation for all employees");
     }
 
     @Test
+    @DisplayName("Multiple payroll runs for single employee")
     void testMultiplePayrollRuns() {
-        int empId = 3;
-        int beforeCount = payrollDAO.getPayrollByEmployee(empId).size();
+        int beforeCount = payrollDAO.getPayrollByEmployee(TEST_EMPLOYEE_ID).size();
 
-        payrollService.generatePayroll(empId);
-        payrollService.generatePayroll(empId);
+        payrollService.generatePayroll(TEST_EMPLOYEE_ID);
+        payrollService.generatePayroll(TEST_EMPLOYEE_ID);
 
-        int afterCount = payrollDAO.getPayrollByEmployee(empId).size();
-        assertTrue(afterCount >= beforeCount + 2);
+        int afterCount = payrollDAO.getPayrollByEmployee(TEST_EMPLOYEE_ID).size();
+        assertEquals(beforeCount + 2, afterCount,
+                "Two additional payroll records should be created for employee " + TEST_EMPLOYEE_ID);
     }
 
     @Test
+    @DisplayName("Payslip contains current date")
     void testPayslipContainsCurrentDate() {
-        payrollService.generatePayroll(3);
+        payrollService.generatePayroll(TEST_EMPLOYEE_ID);
         String output = outContent.toString();
-        assertTrue(output.contains(LocalDate.now().toString()));
+
+        assertTrue(output.contains(LocalDate.now().toString()),
+                "Payslip output should contain today's date");
     }
 }

@@ -22,9 +22,16 @@ public class PayrollService {
     private final DecimalFormat moneyFormat = new DecimalFormat("#,##0.00");
 
     /**
-     * Generate payroll for a single employee and save to DB.
+     * Generate payroll for a single employee using today's date.
      */
     public void generatePayroll(int empId) {
+        generatePayroll(empId, LocalDate.now());
+    }
+
+    /**
+     * Generate payroll for a single employee with a specific pay date.
+     */
+    public void generatePayroll(int empId, LocalDate payDate) {
         Employee emp = empDAO.getEmployeeById(empId);
         if (emp == null) {
             System.out.println("❌ Employee not found!");
@@ -47,17 +54,24 @@ public class PayrollService {
                 da,           // allowances column
                 deductions,
                 netSalary,
-                LocalDate.now()
+                payDate
         );
         payDAO.addPayroll(payroll);
 
-        printPayslip(emp, annualSalary, monthlyBasic, hra, da, deductions, netSalary);
+        printPayslip(emp, annualSalary, monthlyBasic, hra, da, deductions, netSalary, payDate);
     }
 
     /**
-     * Generate payroll for all employees using a FIFO queue.
+     * Generate payroll for all employees using a FIFO queue (today's date).
      */
     public void generatePayrollForAll() {
+        generatePayrollForAll(LocalDate.now());
+    }
+
+    /**
+     * Generate payroll for all employees using a FIFO queue with a custom date.
+     */
+    public void generatePayrollForAll(LocalDate payDate) {
         List<Employee> employees = empDAO.getAllEmployees();
         if (employees.isEmpty()) {
             System.out.println("❌ No employees found!");
@@ -66,7 +80,7 @@ public class PayrollService {
 
         Queue<Employee> queue = new LinkedList<>(employees);
         while (!queue.isEmpty()) {
-            generatePayroll(queue.poll().getId());
+            generatePayroll(queue.poll().getId(), payDate);
         }
 
         System.out.println("✅ Payroll generated for all employees (queue-based).");
@@ -74,7 +88,6 @@ public class PayrollService {
 
     /**
      * Batch insert payrolls using the DAO's queue method
-     * (optional helper if you want to pre-build Payroll objects).
      */
     public void processPayrollBatch(List<Payroll> payrollList) {
         payDAO.processPayrollQueue(payrollList);
@@ -89,13 +102,14 @@ public class PayrollService {
                               double hra,
                               double da,
                               double deductions,
-                              double netSalary) {
+                              double netSalary,
+                              LocalDate payDate) {
 
         System.out.println("\n================== PAYSLIP ==================");
         System.out.printf("%-15s: %s%n", "Employee ID", emp.getId());
         System.out.printf("%-15s: %s%n", "Name", emp.getName());
         System.out.printf("%-15s: %s%n", "Department ID", emp.getDepartmentId());
-        System.out.printf("%-15s: %s%n", "Pay Date", LocalDate.now());
+        System.out.printf("%-15s: %s%n", "Pay Date", payDate);
         System.out.println("---------------------------------------------");
         System.out.printf("%-20s : %10s%n", "Annual CTC", moneyFormat.format(annualSalary));
         System.out.println("---------------------------------------------");
