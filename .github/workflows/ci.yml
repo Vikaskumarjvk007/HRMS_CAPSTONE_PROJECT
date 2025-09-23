@@ -22,6 +22,12 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
+
+    services:
+      dynamodb:
+        image: amazon/dynamodb-local:1.21.0
+        ports:
+          - 8000:8000
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
