@@ -9,6 +9,10 @@ import java.util.List;
 
 public class DepartmentDAO {
 
+    public DepartmentDAO() {
+        seedDepartments();
+    }
+
     // ✅ Get Next Continuous Department ID
     private int getNextDepartmentId() {
         String sql = "SELECT IFNULL(MAX(id), 0) + 1 AS nextId FROM departments";

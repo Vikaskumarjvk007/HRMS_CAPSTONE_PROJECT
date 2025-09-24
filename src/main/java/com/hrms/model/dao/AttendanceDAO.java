@@ -37,7 +37,7 @@ public class AttendanceDAO {
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
                     list.add(new Attendance(
-                            rs.getInt("id"),
+                            rs.getInt("attendance_id"),
                             rs.getInt("employee_id"),
                             rs.getDate("date").toLocalDate(),
                             rs.getString("status")
@@ -60,7 +60,7 @@ public class AttendanceDAO {
 
             while (rs.next()) {
                 list.add(new Attendance(
-                        rs.getInt("id"),
+                        rs.getInt("attendance_id"),
                         rs.getInt("employee_id"),
                         rs.getDate("date").toLocalDate(),
                         rs.getString("status")

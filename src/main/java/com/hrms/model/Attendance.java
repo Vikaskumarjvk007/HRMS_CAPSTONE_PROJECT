@@ -1,5 +1,7 @@
 package com.hrms.model;
 
+import lombok.NonNull;
+
 import java.time.LocalDate;
 
 public class Attendance {
@@ -10,7 +12,7 @@ public class Attendance {
 
     // Constructors
     public Attendance() {}
-    public Attendance(int id, int employeeId, LocalDate day, String status) {
+    public Attendance(@NonNull int id,@NonNull int employeeId,@NonNull LocalDate day,@NonNull String status) {
         this.id = id;
         this.employeeId = employeeId;
         this.day = day;

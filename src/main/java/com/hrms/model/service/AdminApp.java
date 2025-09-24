@@ -13,7 +13,6 @@ public class AdminApp {
         // ✅ DAOs & Services
         AdminDAO adminDAO = new AdminDAO();
         DepartmentDAO deptDAO = new DepartmentDAO();
-        deptDAO.seedDepartments(); // preload some departments
         EmployeeDAO empDAO = new EmployeeDAO();
         AttendanceDAO attDAO = new AttendanceDAO();
         PayrollDAO payDAO = new PayrollDAO();
@@ -29,7 +28,7 @@ public class AdminApp {
                 String username = sc.nextLine();
                 System.out.print("Enter Admin Password: ");
                 String password = sc.nextLine();
-                admin = adminDAO.authenticate(username, password);
+                admin = adminDAO.getAdminDetails(username, password);
                 if (admin == null) {
                     attempts++;
                     if (attempts < 3) {
@@ -112,6 +111,10 @@ public class AdminApp {
                     System.out.print("Enter Location: ");
                     String loc = sc.nextLine();
                     int newId = deptDAO.addDepartment(new Department(name, loc));
+                    if (name.trim().isEmpty() || loc.trim().isEmpty()) {
+                        System.out.println("❌ Department name and location cannot be empty.");
+                        break;
+                    }
                     System.out.println(newId > 0 ? "✅ Department added with ID: " + newId : "❌ Failed to add department.");
                 }
                 case 2 -> {
@@ -122,6 +125,11 @@ public class AdminApp {
                 case 3 -> {
                     System.out.print("Enter Department ID: ");
                     int deptId = sc.nextInt();
+                    Department dept = deptDAO.getDepartmentById(deptId);
+                    if (dept == null) {
+                        System.out.println("❌ Department with ID " + deptId + " does not exist.");
+                        break;
+                    }
                     sc.nextLine();
                     List<Employee> employees = empDAO.getEmployeesByDepartment(deptId);
                     if (employees.isEmpty()) System.out.println("❌ No employees found in this department.");
@@ -180,6 +188,11 @@ public class AdminApp {
 
                     System.out.print("Enter Department ID: ");
                     int deptId = sc.nextInt();
+                    Department dept = new DepartmentDAO().getDepartmentById(deptId);
+                    if (dept == null) {
+                        System.out.println("❌ Invalid Department ID. Employee not added.");
+                        break;
+                    }
 
                     System.out.print("Enter Salary: ");
                     double salary = sc.nextDouble();
@@ -190,6 +203,18 @@ public class AdminApp {
 
                     System.out.print("Enter Phone: ");
                     String phone = sc.nextLine();
+
+                    // ✅ Validate email format
+                    if (!email.matches("^[\\w.-]+@[\\w.-]+\\.\\w+$")) {
+                        System.out.println("❌ Invalid email format. Try again.");
+                        break;
+                    }
+
+                    // ✅ Validate phone format
+                    if (!phone.matches("\\d{10}")) {
+                        System.out.println("❌ Phone must be 10 digits. Try again.");
+                        break;
+                    }
 
                     System.out.print("Enter Date of Joining (YYYY-MM-DD): ");
                     LocalDate doj = LocalDate.parse(sc.nextLine());

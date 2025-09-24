@@ -6,7 +6,7 @@ import java.sql.*;
 public class AdminDAO {
 
     // Authenticate and return Admin object if valid
-    public Admin authenticate(String username, String password) {
+    public Admin getAdminDetails(String username, String password) {
         String sql = "SELECT * FROM admins WHERE username = ? AND password = ?";
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {

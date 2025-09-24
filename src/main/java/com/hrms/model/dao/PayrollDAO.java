@@ -179,4 +179,26 @@ public class PayrollDAO {
                 rs.getString("dept_name")
         );
     }
+
+    public boolean isPayrollGeneratedThisMonth(int employeeId) {
+        String sql = "SELECT COUNT(*) FROM payroll " +
+                "WHERE employee_id = ? " +
+                "AND MONTH(pay_date) = MONTH(CURRENT_DATE) " +
+                "AND YEAR(pay_date) = YEAR(CURRENT_DATE)";
+
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setInt(1, employeeId);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt(1) > 0; // true if payroll already exists
+                }
+            }
+        } catch (SQLException e) {
+            System.err.println("❌ Error checking payroll existence: " + e.getMessage());
+        }
+        return false;
+    }
+
 }

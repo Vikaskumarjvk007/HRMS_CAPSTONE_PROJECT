@@ -1,7 +1,6 @@
 package com.hrms.model;
 
-
-
+import lombok.NonNull;
 import java.time.LocalDate;
 
 public class Employee {
@@ -14,12 +13,10 @@ public class Employee {
     private LocalDate dateOfJoining;
     private String departmentName;
 
-    // ✅ New field for login
     private String password;
 
-    // Full constructor
-    public Employee(int id, String name, int departmentId, double salary, String email,
-                    String phoneNumber, LocalDate dateOfJoining, String password) {
+    public Employee(int id, @NonNull String name, int departmentId, double salary, String email,
+                    String phoneNumber, LocalDate dateOfJoining,@NonNull String password) {
         this.id = id;
         this.name = name;
         this.departmentId = departmentId;
@@ -30,15 +27,6 @@ public class Employee {
         this.password = password;
     }
 
-    // Existing constructor (without password, for legacy use)
-    public Employee(int id, String name, int departmentId, double salary, String email,
-                    String phoneNumber, LocalDate dateOfJoining) {
-        this(id, name, departmentId, salary, email, phoneNumber, dateOfJoining, null);
-    }
-
-    public Employee() {}
-
-    // ✅ Getters & Setters
     public String getPassword() { return password; }
     public void setPassword(String password) { this.password = password; }
 

@@ -30,8 +30,8 @@ public class EmployeeApp {
             int empId = sc.nextInt();
             sc.nextLine();
 
-            System.out.print("Enter Your Password: ");
-            String password = sc.nextLine();
+//            System.out.print("Enter Your Password: ");
+            String password = readNonEmpty(sc, "Enter your password: ");
 
             emp = empDAO.validateLogin(empId, password);
 
@@ -136,4 +136,17 @@ public class EmployeeApp {
             }
         }
     }
+
+    private static String readNonEmpty(Scanner sc, String prompt) {
+        String input;
+        do {
+            System.out.print(prompt);
+            input = sc.nextLine().trim();
+            if (input.isEmpty()) {
+                System.out.println("❌ This field cannot be empty. Please try again.");
+            }
+        } while (input.isEmpty());
+        return input;
+    }
+
 }

@@ -2,9 +2,14 @@ package com.hrms.model.service;
 
 import com.hrms.model.Employee;
 import com.hrms.model.Payroll;
+import com.hrms.model.dao.DBConnection;
 import com.hrms.model.dao.EmployeeDAO;
 import com.hrms.model.dao.PayrollDAO;
 
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.text.DecimalFormat;
 import java.time.LocalDate;
 import java.util.LinkedList;
@@ -80,7 +85,14 @@ public class PayrollService {
 
         Queue<Employee> queue = new LinkedList<>(employees);
         while (!queue.isEmpty()) {
-            generatePayroll(queue.poll().getId(), payDate);
+            int empId = queue.poll().getId();
+            System.out.println("dfjvbfjkdcbfdv");
+            if (isPayrollGeneratedThisMonth(empId)) {
+                System.out.println("⚠ Payroll for this month is already generated for Employee ID " + empId);
+            } else {
+                generatePayroll(queue.poll().getId(), payDate);
+                System.out.println("✅ Payroll generated successfully!");
+            }
         }
 
         System.out.println("✅ Payroll generated for all employees (queue-based).");
@@ -121,4 +133,26 @@ public class PayrollService {
         System.out.printf("%-20s : %10s%n", "Net Salary (Monthly)", moneyFormat.format(netSalary));
         System.out.println("=============================================\n");
     }
+
+    public boolean isPayrollGeneratedThisMonth(int employeeId) {
+        String sql = "SELECT COUNT(*) FROM payrolls " +
+                "WHERE employee_id = ? " +
+                "AND MONTH(pay_date) = MONTH(CURRENT_DATE) " +
+                "AND YEAR(pay_date) = YEAR(CURRENT_DATE)";
+
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setInt(1, employeeId);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt(1) > 0; // true if payroll already exists
+                }
+            }
+        } catch (SQLException e) {
+            System.err.println("❌ Error checking payroll existence: " + e.getMessage());
+        }
+        return false;
+    }
+
 }
