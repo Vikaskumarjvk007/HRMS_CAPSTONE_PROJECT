@@ -1,5 +1,6 @@
 name: Monthly Payroll Generation
 
+
 on:
   workflow_dispatch:
     inputs:
@@ -7,6 +8,7 @@ on:
         description: 'Month to generate payroll (optional)'
         required: false
         default: ''
+
 
 jobs:
   payroll:
