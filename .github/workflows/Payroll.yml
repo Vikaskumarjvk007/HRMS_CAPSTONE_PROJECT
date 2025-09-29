@@ -1,6 +1,5 @@
 name: Monthly Payroll Generation
 
-# Trigger: monthly schedule + manual run
 on:
   schedule:
     - cron: '0 0 1 * *'   # 1st day of every month at midnight UTC
@@ -13,7 +12,10 @@ on:
 
 jobs:
   payroll:
-    runs-on: windows-latest
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [windows-latest, ubuntu-latest]
 
     env:
       DB_URL: jdbc:mysql://localhost:3306/hrms_project
@@ -21,11 +23,9 @@ jobs:
       DB_PASSWORD: Aravind@123
 
     steps:
-      # Step 1: Checkout repository
       - name: Checkout repository
         uses: actions/checkout@v3
 
-      # Step 2: Set up JDK 21
       - name: Set up JDK 21
         uses: actions/setup-java@v3
         with:
@@ -33,34 +33,39 @@ jobs:
           java-version: '21'
           cache: maven
 
-      # Step 3: Reset MySQL Database
       - name: Reset MySQL Database
         run: |
-          mysql -u ${{ env.DB_USER }} -p${{ env.DB_PASSWORD }} -e "DROP DATABASE IF EXISTS hrms_project; CREATE DATABASE hrms_project;"
+          if [[ "${RUNNER_OS}" == "Windows" ]]; then
+            mysql -u %DB_USER% -p%DB_PASSWORD% -e "DROP DATABASE IF EXISTS hrms_project; CREATE DATABASE hrms_project;"
+          else
+            mysql -u $DB_USER -p$DB_PASSWORD -e "DROP DATABASE IF EXISTS hrms_project; CREATE DATABASE hrms_project;"
+          fi
 
-      # Step 4: Clean target folder
       - name: Clean Project
         run: mvn clean
 
-      # Step 5: Build Project (skip tests, safe shading)
-      - name: Build Project
+      - name: Build Project (skip tests)
         run: mvn package "-Dmaven.test.skip=true"
 
-      # Step 6: Run Payroll Job
       - name: Run Payroll Job
         run: |
-          # Determine payroll month
-          if ("%{{ github.event.inputs.month }}%"=="") (
-            set PAYROLL_MONTH=%DATE:~4,2%
-          ) else (
-            set PAYROLL_MONTH=%{{ github.event.inputs.month }}%
-          )
-          echo Generating payroll for month: %PAYROLL_MONTH%
-          # Run Payroll job and redirect all output to payroll.log
-          java -cp target/hrms_project-1.0-SNAPSHOT-shaded.jar com.hrms.model.service.PayrollJobs %PAYROLL_MONTH% > payroll.log 2>&1
+          if [[ "${RUNNER_OS}" == "Windows" ]]; then
+            if ("%{{ github.event.inputs.month }}%"=="") (
+              set PAYROLL_MONTH=%DATE:~4,2%
+            ) else (
+              set PAYROLL_MONTH=%{{ github.event.inputs.month }}%
+            )
+            java -cp target/hrms_project-1.0-SNAPSHOT-shaded.jar com.hrms.model.service.PayrollJobs %PAYROLL_MONTH% > payroll.log 2>&1
+          else
+            if [ -z "${{ github.event.inputs.month }}" ]; then
+              PAYROLL_MONTH=$(date +'%m')
+            else
+              PAYROLL_MONTH="${{ github.event.inputs.month }}"
+            fi
+            java -cp target/hrms_project-1.0-SNAPSHOT-shaded.jar com.hrms.model.service.PayrollJobs $PAYROLL_MONTH > payroll.log 2>&1
+          fi
 
-      # Step 7: Upload payroll log as artifact
-      - name: Upload Payroll Log
+      - name: Upload payroll log
         if: always()
         uses: actions/upload-artifact@v3
         with:
