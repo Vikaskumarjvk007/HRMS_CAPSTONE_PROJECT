@@ -1,14 +1,13 @@
 name: Monthly Payroll Generation
 
 on:
-  schedule:
-    - cron: '0 0 1 * *'   # 1st day of every month at midnight UTC
   workflow_dispatch:
     inputs:
       month:
         description: 'Month to generate payroll (optional)'
         required: false
-        default: ''  # empty = current month
+        default: ''
+
 
 jobs:
   payroll:
