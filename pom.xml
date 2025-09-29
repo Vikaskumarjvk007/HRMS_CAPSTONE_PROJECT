@@ -106,6 +106,8 @@
                 </configuration>
             </plugin>
 
+
+
             <!-- Surefire Plugin for JUnit 5 -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
