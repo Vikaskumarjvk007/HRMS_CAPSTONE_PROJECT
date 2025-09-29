@@ -1,15 +1,15 @@
 name: Monthly Payroll Generation
 
-# Triggers: Monthly schedule + manual trigger
+# Trigger: monthly schedule + manual run
 on:
   schedule:
     - cron: '0 0 1 * *'   # 1st day of every month at midnight UTC
   workflow_dispatch:
     inputs:
       month:
-        description: 'Month to generate payroll for'
+        description: 'Month to generate payroll (optional)'
         required: false
-        default: ''        # empty means current month
+        default: ''  # empty = current month
 
 jobs:
   payroll:
@@ -21,7 +21,7 @@ jobs:
       DB_PASSWORD: Aravind@123
 
     steps:
-      # Step 1: Checkout the repository
+      # Step 1: Checkout repository
       - name: Checkout repository
         uses: actions/checkout@v3
 
@@ -33,16 +33,21 @@ jobs:
           java-version: '21'
           cache: maven
 
-      # Step 3: Build the project
+      # Step 3: Build Project
       - name: Build Project
         run: mvn clean package -DskipTests
 
       # Step 4: Run Payroll Job
       - name: Run Payroll Job
         run: |
-          set PAYROLL_MONTH=${{ github.event.inputs.month }}
-          if "%PAYROLL_MONTH%"=="" set PAYROLL_MONTH=%DATE:~4,2%
-          echo "Generating payroll for month: %PAYROLL_MONTH%"
+          # Determine payroll month
+          if ("%{{ github.event.inputs.month }}%"=="") (
+            set PAYROLL_MONTH=%DATE:~4,2%
+          ) else (
+            set PAYROLL_MONTH=%{{ github.event.inputs.month }}%
+          )
+          echo Generating payroll for month: %PAYROLL_MONTH%
+          # Run Payroll job and redirect all output to payroll.log
           java -cp target/hrms_project-1.0-SNAPSHOT-shaded.jar com.hrms.model.service.PayrollJobs %PAYROLL_MONTH% > payroll.log 2>&1
 
       # Step 5: Upload payroll log as artifact
