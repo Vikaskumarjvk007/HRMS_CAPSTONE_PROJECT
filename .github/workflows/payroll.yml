@@ -26,19 +26,11 @@ jobs:
           java-version: '21'
           cache: maven
 
-      - name: Cache Maven dependencies
-        uses: actions/cache@v3
-        with:
-          path: ~/.m2/repository
-          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
-          restore-keys: |
-            ${{ runner.os }}-maven-
-
       - name: Build Project
         run: mvn clean package
 
       - name: Run PayrollJob
-        run: mvn exec:java@run-payrolljob
+        run: java -cp target/hrms_project-1.0-SNAPSHOT-shaded.jar com.hrms.model.service.PayrollJobs
 
       - name: Upload Payroll Log
         if: always()
