@@ -21,6 +21,7 @@ jobs:
       DB_URL: jdbc:mysql://localhost:3306/hrms_project
       DB_USER: root
       DB_PASSWORD: Aravind@123
+      CI: true  # Signals Maven to skip tests
 
     steps:
       - name: Checkout repository
@@ -44,8 +45,13 @@ jobs:
       - name: Clean Project
         run: mvn clean
 
-      - name: Build Project (skip tests)
-        run: mvn package "-Dmaven.test.skip=true"
+      - name: Build Project (skip tests in CI)
+        run: |
+          if [[ "${CI}" == "true" ]]; then
+            mvn package -DskipTests
+          else
+            mvn package
+          fi
 
       - name: Run Payroll Job
         run: |
