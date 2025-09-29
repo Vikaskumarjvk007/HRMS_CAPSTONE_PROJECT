@@ -1,0 +1,48 @@
+name: Auto Payroll Generation
+
+# Trigger: 1st day of every month at 00:00 UTC
+on:
+  schedule:
+    - cron: '0 0 1 * *'  # minute hour day-of-month month day-of-week
+  workflow_dispatch:      # allows manual trigger
+
+jobs:
+  payroll:
+    runs-on: windows-latest
+
+    env:
+      DB_URL: ${{ secrets.DB_URL }}
+      DB_USER: ${{ secrets.DB_USER }}
+      DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v3
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: maven
+
+      - name: Cache Maven dependencies
+        uses: actions/cache@v3
+        with:
+          path: ~/.m2/repository
+          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+          restore-keys: |
+            ${{ runner.os }}-maven-
+
+      - name: Build Project
+        run: mvn clean package
+
+      - name: Run PayrollJob
+        run: mvn exec:java@run-payrolljob
+
+      - name: Upload Payroll Log
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: payroll-log
+          path: payroll.log
