@@ -10,13 +10,15 @@ import java.util.Queue;
 
 public class PayrollDAO {
 
-    /** CREATE */
+    /**
+     * CREATE
+     */
     public void addPayroll(Payroll p) {
         String sql = """
-            INSERT INTO payrolls
-            (employee_id, basic, hra, allowances, deductions, net_salary, pay_date)
-            VALUES (?, ?, ?, ?, ?, ?, ?)
-            """;
+                INSERT INTO payrolls
+                (employee_id, basic, hra, allowances, deductions, net_salary, pay_date)
+                VALUES (?, ?, ?, ?, ?, ?, ?)
+                """;
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
 
@@ -35,7 +37,9 @@ public class PayrollDAO {
         }
     }
 
-    /** READ – all payroll rows (no join) */
+    /**
+     * READ – all payroll rows (no join)
+     */
     public List<Payroll> getAllPayrolls() {
         List<Payroll> list = new ArrayList<>();
         String sql = "SELECT * FROM payrolls ORDER BY pay_date DESC";
@@ -51,18 +55,20 @@ public class PayrollDAO {
         return list;
     }
 
-    /** READ – payrolls with employee + department details */
+    /**
+     * READ – payrolls with employee + department details
+     */
     public List<Payroll> getAllPayrollDetails() {
         List<Payroll> list = new ArrayList<>();
         String sql = """
-            SELECT p.id, p.employee_id,
-                   p.basic, p.hra, p.allowances, p.deductions, p.net_salary, p.pay_date,
-                   e.name AS emp_name, d.name AS dept_name
-            FROM payrolls p
-            JOIN employees e ON p.employee_id = e.id
-            JOIN departments d ON e.department_id = d.id
-            ORDER BY p.pay_date DESC
-            """;
+                SELECT p.id, p.employee_id,
+                       p.basic, p.hra, p.allowances, p.deductions, p.net_salary, p.pay_date,
+                       e.name AS emp_name, d.name AS dept_name
+                FROM payrolls p
+                JOIN employees e ON p.employee_id = e.id
+                JOIN departments d ON e.department_id = d.id
+                ORDER BY p.pay_date DESC
+                """;
         try (Connection conn = DBConnection.getConnection();
              Statement st = conn.createStatement();
              ResultSet rs = st.executeQuery(sql)) {
@@ -75,7 +81,9 @@ public class PayrollDAO {
         return list;
     }
 
-    /** READ – payrolls for a specific employee */
+    /**
+     * READ – payrolls for a specific employee
+     */
     public List<Payroll> getPayrollByEmployee(int empId) {
         List<Payroll> list = new ArrayList<>();
         String sql = "SELECT * FROM payrolls WHERE employee_id = ? ORDER BY pay_date DESC";
@@ -93,13 +101,15 @@ public class PayrollDAO {
         return list;
     }
 
-    /** UPDATE */
+    /**
+     * UPDATE
+     */
     public boolean updatePayroll(Payroll p) {
         String sql = """
-            UPDATE payrolls
-            SET basic=?, hra=?, allowances=?, deductions=?, net_salary=?, pay_date=?
-            WHERE id=?
-            """;
+                UPDATE payrolls
+                SET basic=?, hra=?, allowances=?, deductions=?, net_salary=?, pay_date=?
+                WHERE id=?
+                """;
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
 
@@ -118,7 +128,9 @@ public class PayrollDAO {
         }
     }
 
-    /** DELETE */
+    /**
+     * DELETE
+     */
     public boolean deletePayroll(int id) {
         String sql = "DELETE FROM payrolls WHERE id=?";
         try (Connection conn = DBConnection.getConnection();
@@ -131,7 +143,9 @@ public class PayrollDAO {
         }
     }
 
-    /** Queue-based batch insert */
+    /**
+     * Queue-based batch insert
+     */
     public void processPayrollQueue(List<Payroll> payrollList) {
         if (payrollList.isEmpty()) {
             System.out.println("❌ No payrolls to process.");
@@ -181,10 +195,12 @@ public class PayrollDAO {
     }
 
     public boolean isPayrollGeneratedThisMonth(int employeeId) {
-        String sql = "SELECT COUNT(*) FROM payroll " +
-                "WHERE employee_id = ? " +
-                "AND MONTH(pay_date) = MONTH(CURRENT_DATE) " +
-                "AND YEAR(pay_date) = YEAR(CURRENT_DATE)";
+        String sql = """
+                SELECT COUNT(*) FROM payrolls
+                WHERE employee_id = ?
+                  AND MONTH(pay_date) = MONTH(CURRENT_DATE)
+                  AND YEAR(pay_date) = YEAR(CURRENT_DATE)
+                """;
 
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -192,7 +208,7 @@ public class PayrollDAO {
             ps.setInt(1, employeeId);
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
-                    return rs.getInt(1) > 0; // true if payroll already exists
+                    return rs.getInt(1) > 0; // ✅ true if payroll already exists
                 }
             }
         } catch (SQLException e) {
