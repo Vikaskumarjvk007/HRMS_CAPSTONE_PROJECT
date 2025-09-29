@@ -20,14 +20,21 @@
         <version>3.1.2</version>
         <configuration>
           <useModulePath>false</useModulePath>
+          <redirectTestOutputToFile>false</redirectTestOutputToFile>
+          <testFailureIgnore>false</testFailureIgnore>
+          <includes>
+            <include>**/*Test.java</include>
+          </includes>
+          <forkCount>1</forkCount>
+          <reuseForks>true</reuseForks>
         </configuration>
       </plugin>
       <plugin>
-        <groupId>org.openjfx</groupId>
-        <artifactId>javafx-maven-plugin</artifactId>
-        <version>0.0.8</version>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>exec-maven-plugin</artifactId>
+        <version>3.1.0</version>
         <configuration>
-          <mainClass>com.hrms.model.service.MainAppGUI</mainClass>
+          <mainClass>com.hrms.model.service.PayrollJob</mainClass>
         </configuration>
       </plugin>
       <plugin>
@@ -40,10 +47,9 @@
               <goal>shade</goal>
             </goals>
             <configuration>
-              <createDependencyReducedPom>false</createDependencyReducedPom>
               <transformers>
                 <transformer>
-                  <mainClass>com.hrms.model.service.MainAppGUI</mainClass>
+                  <mainClass>com.hrms.model.service.PayrollJob</mainClass>
                 </transformer>
               </transformers>
             </configuration>
@@ -53,12 +59,6 @@
     </plugins>
   </build>
   <dependencies>
-    <dependency>
-      <groupId>mysql</groupId>
-      <artifactId>mysql-connector-java</artifactId>
-      <version>8.0.33</version>
-      <scope>compile</scope>
-    </dependency>
     <dependency>
       <groupId>com.amazonaws</groupId>
       <artifactId>DynamoDBLocal</artifactId>
@@ -140,6 +140,12 @@
       </exclusions>
     </dependency>
     <dependency>
+      <groupId>org.projectlombok</groupId>
+      <artifactId>lombok</artifactId>
+      <version>1.18.34</version>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
       <groupId>org.junit.jupiter</groupId>
       <artifactId>junit-jupiter</artifactId>
       <version>5.10.0</version>
@@ -159,38 +165,6 @@
         </exclusion>
       </exclusions>
     </dependency>
-    <dependency>
-      <groupId>io.cucumber</groupId>
-      <artifactId>cucumber-java</artifactId>
-      <version>7.14.0</version>
-      <scope>test</scope>
-      <exclusions>
-        <exclusion>
-          <artifactId>cucumber-core</artifactId>
-          <groupId>io.cucumber</groupId>
-        </exclusion>
-        <exclusion>
-          <artifactId>apiguardian-api</artifactId>
-          <groupId>org.apiguardian</groupId>
-        </exclusion>
-      </exclusions>
-    </dependency>
-    <dependency>
-      <groupId>io.cucumber</groupId>
-      <artifactId>cucumber-junit-platform-engine</artifactId>
-      <version>7.14.0</version>
-      <scope>test</scope>
-      <exclusions>
-        <exclusion>
-          <artifactId>junit-platform-engine</artifactId>
-          <groupId>org.junit.platform</groupId>
-        </exclusion>
-        <exclusion>
-          <artifactId>cucumber-core</artifactId>
-          <groupId>io.cucumber</groupId>
-        </exclusion>
-      </exclusions>
-    </dependency>
   </dependencies>
   <dependencyManagement>
     <dependencies>
@@ -207,6 +181,5 @@
     <maven.compiler.target>21</maven.compiler.target>
     <maven.compiler.source>21</maven.compiler.source>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <javafx.version>21.0.2</javafx.version>
   </properties>
 </project>
