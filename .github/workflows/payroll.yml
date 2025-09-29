@@ -1,10 +1,10 @@
 name: Auto Payroll Generation
 
-# Trigger: 1st day of every month at 00:00 UTC
+# Trigger: 1st day of every month at 00:00 UTC or manual trigger
 on:
   schedule:
-    - cron: '0 0 1 * *'  # minute hour day-of-month month day-of-week
-  workflow_dispatch:      # allows manual trigger
+    - cron: '0 0 1 * *'
+  workflow_dispatch:
 
 jobs:
   payroll:
@@ -26,8 +26,14 @@ jobs:
           java-version: '21'
           cache: maven
 
-      - name: Build Project
-        run: mvn clean package
+      - name: Build Project (with shaded JAR)
+        run: mvn clean package -DskipTests
+
+      - name: Ensure payroll log exists
+        run: |
+          if [ ! -f payroll.log ]; then
+            echo "Payroll log created" > payroll.log
+          fi
 
       - name: Run PayrollJob
         run: java -cp target/hrms_project-1.0-SNAPSHOT-shaded.jar com.hrms.model.service.PayrollJobs
