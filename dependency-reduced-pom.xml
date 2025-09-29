@@ -10,8 +10,7 @@
         <artifactId>maven-compiler-plugin</artifactId>
         <version>3.11.0</version>
         <configuration>
-          <source>${maven.compiler.source}</source>
-          <target>${maven.compiler.target}</target>
+          <release>${java.version}</release>
           <encoding>${project.build.sourceEncoding}</encoding>
         </configuration>
       </plugin>
@@ -20,22 +19,27 @@
         <version>3.1.2</version>
         <configuration>
           <useModulePath>false</useModulePath>
-          <redirectTestOutputToFile>false</redirectTestOutputToFile>
-          <testFailureIgnore>false</testFailureIgnore>
           <includes>
             <include>**/*Test.java</include>
           </includes>
-          <forkCount>1</forkCount>
-          <reuseForks>true</reuseForks>
         </configuration>
       </plugin>
       <plugin>
         <groupId>org.codehaus.mojo</groupId>
         <artifactId>exec-maven-plugin</artifactId>
         <version>3.1.0</version>
-        <configuration>
-          <mainClass>com.hrms.model.service.PayrollJob</mainClass>
-        </configuration>
+        <executions>
+          <execution>
+            <id>run-payrolljob</id>
+            <phase>package</phase>
+            <goals>
+              <goal>java</goal>
+            </goals>
+            <configuration>
+              <mainClass>com.hrms.model.service.PayrollJobs</mainClass>
+            </configuration>
+          </execution>
+        </executions>
       </plugin>
       <plugin>
         <artifactId>maven-shade-plugin</artifactId>
@@ -47,17 +51,43 @@
               <goal>shade</goal>
             </goals>
             <configuration>
+              <finalName>${project.artifactId}-${project.version}-shaded</finalName>
               <transformers>
                 <transformer>
-                  <mainClass>com.hrms.model.service.PayrollJob</mainClass>
+                  <mainClass>com.hrms.model.service.PayrollJobs</mainClass>
                 </transformer>
               </transformers>
+              <filters>
+                <filter>
+                  <artifact>*:*</artifact>
+                  <excludes>
+                    <exclude>META-INF/*.SF</exclude>
+                    <exclude>META-INF/*.DSA</exclude>
+                    <exclude>META-INF/*.RSA</exclude>
+                  </excludes>
+                </filter>
+              </filters>
             </configuration>
           </execution>
         </executions>
       </plugin>
     </plugins>
   </build>
+  <profiles>
+    <profile>
+      <id>ci</id>
+      <build>
+        <plugins>
+          <plugin>
+            <artifactId>maven-surefire-plugin</artifactId>
+            <configuration>
+              <testFailureIgnore>false</testFailureIgnore>
+            </configuration>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+  </profiles>
   <dependencies>
     <dependency>
       <groupId>com.amazonaws</groupId>
@@ -178,8 +208,8 @@
     </dependencies>
   </dependencyManagement>
   <properties>
-    <maven.compiler.target>21</maven.compiler.target>
-    <maven.compiler.source>21</maven.compiler.source>
+    <maven.compiler.release>${java.version}</maven.compiler.release>
+    <java.version>21</java.version>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
   </properties>
 </project>

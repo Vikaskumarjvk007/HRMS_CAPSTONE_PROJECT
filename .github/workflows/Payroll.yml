@@ -33,15 +33,20 @@ jobs:
           java-version: '21'
           cache: maven
 
-      # Step 3: Clean target folder
+      # Step 3: Reset MySQL Database
+      - name: Reset MySQL Database
+        run: |
+          mysql -u ${{ env.DB_USER }} -p${{ env.DB_PASSWORD }} -e "DROP DATABASE IF EXISTS hrms_project; CREATE DATABASE hrms_project;"
+
+      # Step 4: Clean target folder
       - name: Clean Project
         run: mvn clean
 
-      # Step 4: Build Project (skip tests, safe shading)
+      # Step 5: Build Project (skip tests, safe shading)
       - name: Build Project
         run: mvn package "-Dmaven.test.skip=true"
 
-      # Step 5: Run Payroll Job
+      # Step 6: Run Payroll Job
       - name: Run Payroll Job
         run: |
           # Determine payroll month
@@ -54,7 +59,7 @@ jobs:
           # Run Payroll job and redirect all output to payroll.log
           java -cp target/hrms_project-1.0-SNAPSHOT-shaded.jar com.hrms.model.service.PayrollJobs %PAYROLL_MONTH% > payroll.log 2>&1
 
-      # Step 6: Upload payroll log as artifact
+      # Step 7: Upload payroll log as artifact
       - name: Upload Payroll Log
         if: always()
         uses: actions/upload-artifact@v3

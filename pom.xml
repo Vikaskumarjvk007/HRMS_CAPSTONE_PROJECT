@@ -106,8 +106,6 @@
                 </configuration>
             </plugin>
 
-
-
             <!-- Surefire Plugin for JUnit 5 -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
@@ -120,6 +118,9 @@
                     </includes>
                 </configuration>
             </plugin>
+
+
+
 
             <!-- Exec Maven Plugin to run PayrollJobs -->
             <plugin>
@@ -158,6 +159,16 @@
                                     <mainClass>com.hrms.model.service.PayrollJobs</mainClass>
                                 </transformer>
                             </transformers>
+                            <filters>
+                                <filter>
+                                    <artifact>*:*</artifact>
+                                    <excludes>
+                                        <exclude>META-INF/*.SF</exclude>
+                                        <exclude>META-INF/*.DSA</exclude>
+                                        <exclude>META-INF/*.RSA</exclude>
+                                    </excludes>
+                                </filter>
+                            </filters>
                         </configuration>
                     </execution>
                 </executions>
