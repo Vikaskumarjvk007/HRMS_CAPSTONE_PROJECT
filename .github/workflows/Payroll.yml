@@ -12,16 +12,13 @@ on:
 
 jobs:
   payroll:
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        os: [windows-latest, ubuntu-latest]
+    runs-on: windows-latest
 
     env:
       DB_URL: jdbc:mysql://localhost:3306/hrms_project
       DB_USER: root
       DB_PASSWORD: Aravind@123
-      CI: true  # Signals Maven to skip tests
+      CI: true
 
     steps:
       - name: Checkout repository
@@ -36,40 +33,24 @@ jobs:
 
       - name: Reset MySQL Database
         run: |
-          if [[ "${RUNNER_OS}" == "Windows" ]]; then
-            mysql -u %DB_USER% -p%DB_PASSWORD% -e "DROP DATABASE IF EXISTS hrms_project; CREATE DATABASE hrms_project;"
-          else
-            mysql -u $DB_USER -p$DB_PASSWORD -e "DROP DATABASE IF EXISTS hrms_project; CREATE DATABASE hrms_project;"
-          fi
+          mysql -u %DB_USER% -p%DB_PASSWORD% -e "DROP DATABASE IF EXISTS hrms_project; CREATE DATABASE hrms_project;"
 
       - name: Clean Project
         run: mvn clean
 
       - name: Build Project (skip tests in CI)
-        run: |
-          if [[ "${CI}" == "true" ]]; then
-            mvn package -DskipTests
-          else
-            mvn package
-          fi
+        run: mvn package -DskipTests
 
       - name: Run Payroll Job
+        shell: powershell
         run: |
-          if [[ "${RUNNER_OS}" == "Windows" ]]; then
-            if ("%{{ github.event.inputs.month }}%"=="") (
-              set PAYROLL_MONTH=%DATE:~4,2%
-            ) else (
-              set PAYROLL_MONTH=%{{ github.event.inputs.month }}%
-            )
-            java -cp target/hrms_project-1.0-SNAPSHOT-shaded.jar com.hrms.model.service.PayrollJobs %PAYROLL_MONTH% > payroll.log 2>&1
-          else
-            if [ -z "${{ github.event.inputs.month }}" ]; then
-              PAYROLL_MONTH=$(date +'%m')
-            else
-              PAYROLL_MONTH="${{ github.event.inputs.month }}"
-            fi
-            java -cp target/hrms_project-1.0-SNAPSHOT-shaded.jar com.hrms.model.service.PayrollJobs $PAYROLL_MONTH > payroll.log 2>&1
-          fi
+          # Use workflow input if provided, else use current month
+          $payrollMonth = '${{ github.event.inputs.month }}'
+          if ([string]::IsNullOrEmpty($payrollMonth)) {
+              $payrollMonth = (Get-Date).ToString('MM')
+          }
+          Write-Host "Generating payroll for month: $payrollMonth"
+          java -cp target/hrms_project-1.0-SNAPSHOT-shaded.jar com.hrms.model.service.PayrollJobs $payrollMonth > payroll.log 2>&1
 
       - name: Upload payroll log
         if: always()
