@@ -4,12 +4,14 @@
 #-------------------------------------------------------------------------------#
 
 name: Qodana
+
+# Triggers
 on:
-  workflow_dispatch:
-  pull_request:
+  workflow_dispatch:       # Manual trigger
+  pull_request:            # Trigger on PRs
   push:
     branches:
-      - master
+      - master             # Trigger on push to master
 
 jobs:
   qodana:
@@ -18,22 +20,23 @@ jobs:
       contents: write
       pull-requests: write
       checks: write
+
     steps:
+      # Step 1: Checkout the repository
       - uses: actions/checkout@v4
         with:
-          ref: ${{ github.event.pull_request.head.sha }}
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
           fetch-depth: 0
+
+      # Step 2: Run Qodana Scan
       - name: 'Qodana Scan'
         uses: JetBrains/qodana-action@v2025.2
         env:
           QODANA_TOKEN: ${{ secrets.QODANA_TOKEN }}
         with:
-          # In pr-mode: 'true' Qodana checks only changed files
-          pr-mode: false
+          pr-mode: false                # Set to 'true' to check only changed files in PR
           use-caches: true
           post-pr-comment: true
           use-annotations: true
-          # Upload Qodana results (SARIF, other artifacts, logs) as an artifact to the job
-          upload-result: false
-          # quick-fixes available in Ultimate and Ultimate Plus plans
-          push-fixes: 'none'
+          upload-result: false          # Set 'true' if you want SARIF/artifacts uploaded
+          push-fixes: 'none'           # Options: none, all, quick-fixes (Ultimate plans)

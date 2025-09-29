@@ -1,37 +1,23 @@
-name: Auto Payroll Generation
+name: Monthly Payroll Generation
 
-# Trigger: 1st day of every month at 00:00 UTC or manual trigger
+# Triggers: manual run and 1st day of every month at 00:00 UTC
 on:
-  workflow_dispatch:  # <-- required for manual runs
+  workflow_dispatch:   # Required for manual trigger
   schedule:
-    - cron: '0 0 1 * *'  # optional, runs 1st day of every month
-
+    - cron: '0 0 1 * *'  # Runs 1st day of each month at midnight UTC
 
 jobs:
   payroll:
-    runs-on: ubuntu-latest
-
-    services:
-      mysql:
-        image: mysql:8.0
-        env:
-          MYSQL_ROOT_PASSWORD: rootpassword
-          MYSQL_DATABASE: hrms_project
-        ports:
-          - 3306:3306
-        options: >-
-          --health-cmd="mysqladmin ping --silent"
-          --health-interval=10s
-          --health-timeout=5s
-          --health-retries=5
+    runs-on: windows-latest
 
     env:
-      DB_URL: jdbc:mysql://127.0.0.1:3306/hrms_project
+      # Hardcoded local DB credentials (use only for private repos!)
+      DB_URL: jdbc:mysql://localhost:3306/hrms_project
       DB_USER: root
-      DB_PASSWORD: rootpassword
+      DB_PASSWORD: Aravind@123
 
     steps:
-      # Step 1: Checkout the repo
+      # Step 1: Checkout the repository
       - name: Checkout repository
         uses: actions/checkout@v3
 
@@ -43,27 +29,15 @@ jobs:
           java-version: '21'
           cache: maven
 
-      # Step 3: Wait for MySQL to be ready
-      - name: Wait for MySQL
-        run: |
-          for i in {1..30}; do
-            if mysql -h 127.0.0.1 -P 3306 -u root -prootpassword -e "SHOW DATABASES;" > /dev/null 2>&1; then
-              echo "MySQL is ready!"
-              break
-            fi
-            echo "Waiting for MySQL..."
-            sleep 5
-          done
-
-      # Step 4: Build the project
+      # Step 3: Build the project
       - name: Build Project
         run: mvn clean package -DskipTests
 
-      # Step 5: Run PayrollJobs
+      # Step 4: Run PayrollJobs
       - name: Run Payroll Job
         run: java -cp target/hrms_project-1.0-SNAPSHOT-shaded.jar com.hrms.model.service.PayrollJobs
 
-      # Step 6: Upload payroll log as artifact
+      # Step 5: Upload payroll log as artifact (optional)
       - name: Upload Payroll Log
         if: always()
         uses: actions/upload-artifact@v3
