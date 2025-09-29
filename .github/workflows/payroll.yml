@@ -2,9 +2,10 @@ name: Auto Payroll Generation
 
 # Trigger: 1st day of every month at 00:00 UTC or manual trigger
 on:
+  workflow_dispatch:  # <-- required for manual runs
   schedule:
-    - cron: '0 0 1 * *'
-  workflow_dispatch:
+    - cron: '0 0 1 * *'  # optional, runs 1st day of every month
+
 
 jobs:
   payroll:
