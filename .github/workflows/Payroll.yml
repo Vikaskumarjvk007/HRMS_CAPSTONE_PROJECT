@@ -8,7 +8,6 @@ on:
         required: false
         default: ''
 
-
 jobs:
   payroll:
     runs-on: windows-latest
@@ -31,8 +30,10 @@ jobs:
           cache: maven
 
       - name: Reset MySQL Database
+        shell: powershell
         run: |
-          mysql -u %DB_USER% -p%DB_PASSWORD% -e "DROP DATABASE IF EXISTS hrms_project; CREATE DATABASE hrms_project;"
+          Write-Host "Resetting MySQL database..."
+          mysql -u $env:DB_USER -p$env:DB_PASSWORD -e "DROP DATABASE IF EXISTS hrms_project; CREATE DATABASE hrms_project;"
 
       - name: Clean Project
         run: mvn clean
@@ -43,17 +44,19 @@ jobs:
       - name: Run Payroll Job
         shell: powershell
         run: |
-          # Use workflow input if provided, else use current month
+          # Determine payroll month
           $payrollMonth = '${{ github.event.inputs.month }}'
           if ([string]::IsNullOrEmpty($payrollMonth)) {
               $payrollMonth = (Get-Date).ToString('MM')
           }
           Write-Host "Generating payroll for month: $payrollMonth"
+
+          # Run Payroll job
           java -cp target/hrms_project-1.0-SNAPSHOT-shaded.jar com.hrms.model.service.PayrollJobs $payrollMonth > payroll.log 2>&1
 
       - name: Upload payroll log
         if: always()
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: payroll-log
           path: payroll.log
