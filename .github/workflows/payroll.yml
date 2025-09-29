@@ -1,17 +1,17 @@
 name: Monthly Payroll Generation
 
-# Triggers: manual run and 1st day of every month at 00:00 UTC
+# Trigger: 1st day of every month at 00:00 UTC or manual trigger
 on:
-  workflow_dispatch:   # Required for manual trigger
   schedule:
-    - cron: '0 0 1 * *'  # Runs 1st day of each month at midnight UTC
+    - cron: '0 0 1 * *'   # monthly on 1st day at midnight UTC
+  workflow_dispatch:       # allows manual runs
 
 jobs:
   payroll:
     runs-on: windows-latest
 
     env:
-      # Hardcoded local DB credentials (use only for private repos!)
+      # Hardcoded local DB credentials (for private repo; not recommended for public repos)
       DB_URL: jdbc:mysql://localhost:3306/hrms_project
       DB_USER: root
       DB_PASSWORD: Aravind@123
@@ -37,7 +37,7 @@ jobs:
       - name: Run Payroll Job
         run: java -cp target/hrms_project-1.0-SNAPSHOT-shaded.jar com.hrms.model.service.PayrollJobs
 
-      # Step 5: Upload payroll log as artifact (optional)
+      # Step 5: Upload payroll log as artifact
       - name: Upload Payroll Log
         if: always()
         uses: actions/upload-artifact@v3
