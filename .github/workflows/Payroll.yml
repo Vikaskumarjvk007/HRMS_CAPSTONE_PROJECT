@@ -117,13 +117,10 @@ jobs:
 
       - name: Commit payroll log back to repo
         if: always()
-        run: |
-          git config --global user.name "$GIT_USER_NAME"
-          git config --global user.email "$GIT_USER_EMAIL"
-          git add payroll.log
-          git diff --staged --quiet || git commit -m "Update payroll log for month $PAYROLL_MONTH"
-          git push https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git HEAD:${GITHUB_REF_NAME}
-        env:
-          GIT_USER_NAME: github-actions
-          GIT_USER_EMAIL: aravindkasanagottu@gmail.com
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        uses: ad-m/github-push-action@v0.6.0
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          branch: ${{ github.ref_name }}
+          force: false
+          commit_message: "Update payroll log for month ${{ github.event.inputs.month }}"
+          file: "payroll.log"
