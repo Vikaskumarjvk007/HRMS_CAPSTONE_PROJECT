@@ -1,44 +1,11 @@
+Payroll job started. Check payroll.log for details.
+Error during payroll job: Unknown column 'pay_date' in 'where clause'
 ========== Payroll Job Started: 2025-09-30 ==========
-Error during payroll job: Table 'hrms_project.payrolls' doesn't exist
-java.sql.SQLSyntaxErrorException: Table 'hrms_project.payrolls' doesn't exist
+Error during payroll job: Unknown column 'pay_date' in 'where clause'
+java.sql.SQLSyntaxErrorException: Unknown column 'pay_date' in 'where clause'
 	at com.mysql.cj.jdbc.exceptions.SQLError.createSQLException(SQLError.java:121)
 	at com.mysql.cj.jdbc.exceptions.SQLExceptionsMapping.translateException(SQLExceptionsMapping.java:122)
 	at com.mysql.cj.jdbc.ClientPreparedStatement.executeInternal(ClientPreparedStatement.java:916)
 	at com.mysql.cj.jdbc.ClientPreparedStatement.executeQuery(ClientPreparedStatement.java:972)
 	at com.hrms.model.service.PayrollJobs.run(PayrollJobs.java:52)
 	at com.hrms.model.service.PayrollJobs.main(PayrollJobs.java:23)
-	at org.codehaus.mojo.exec.ExecJavaMojo$1.run(ExecJavaMojo.java:279)
-	at java.base/java.lang.Thread.run(Thread.java:1583)
-========== Payroll Job Started: 2025-09-30 ==========
-Payroll not generated for 2025-09. Generating now...
-Payroll generation completed for 2025-09.
-========== Payroll Job Ended ==========
-
-========== Payroll Job Started: 2025-09-30 ==========
-Payroll already generated for 2025-09. Exiting.
-========== Payroll Job Ended ==========
-
-========== Payroll Job Started: 2025-09-30 ==========
-Payroll already generated for 2025-09. Exiting.
-========== Payroll Job Ended ==========
-
-========== Payroll Job Started: 2025-09-30 ==========
-Payroll already generated for 2025-09. Exiting.
-========== Payroll Job Ended ==========
-
-========== Payroll Job Started: 2025-09-30 ==========
-Payroll already generated for 2025-09. Exiting.
-========== Payroll Job Ended ==========
-
-========== Payroll Job Started: 2025-09-30 ==========
-Payroll already generated for 2025-09. Exiting.
-========== Payroll Job Ended ==========
-
-========== Payroll Job Started: 2025-09-30 ==========
-Payroll already generated for 2025-09. Exiting.
-========== Payroll Job Ended ==========
-
-========== Payroll Job Started: 2025-09-30 ==========
-Payroll already generated for 2025-09. Exiting.
-========== Payroll Job Ended ==========
-
