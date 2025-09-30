@@ -39,12 +39,30 @@ jobs:
       - name: Check out repository
         uses: actions/checkout@v4
 
+      - name: Verify schema file exists
+        run: |
+          echo "Current directory: $(pwd)"
+          echo "Listing files:"
+          ls -R
+          if [ ! -f GitActionsdb/schema.sql ]; then
+            echo "ERROR: GitActionsdb/schema.sql not found!"
+            exit 1
+          fi
+
       - name: Set up Temurin JDK 21
         uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: '21'
           cache: maven
+
+      - name: Cache Maven dependencies
+        uses: actions/cache@v3
+        with:
+          path: ~/.m2/repository
+          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+          restore-keys: |
+            ${{ runner.os }}-maven-
 
       - name: Show Java & Maven versions
         run: |
@@ -71,7 +89,21 @@ jobs:
       - name: Initialize database schema
         run: |
           echo "Creating payrolls table from schema.sql..."
-          mysql -h 127.0.0.1 -P 3306 -u $DB_USER -p$DB_PASSWORD hrms_project < db/schema.sql
+          mysql -h 127.0.0.1 -P 3306 -u $DB_USER -p$DB_PASSWORD hrms_project < GitActionsdb/schema.sql
+
+      - name: Wait until payrolls table exists
+        run: |
+          echo "Waiting for payrolls table to exist..."
+          for i in {1..12}; do
+            TABLE_EXISTS=$(mysql -h 127.0.0.1 -P 3306 -u $DB_USER -p$DB_PASSWORD -D hrms_project -sse "SHOW TABLES LIKE 'payrolls';")
+            if [ "$TABLE_EXISTS" == "payrolls" ]; then
+              echo "Payrolls table exists."
+              break
+            else
+              echo "Payrolls table not yet created, retrying..."
+              sleep 5
+            fi
+          done
 
       - name: Build application
         run: mvn clean package -DskipTests
@@ -83,8 +115,7 @@ jobs:
             PAYROLL_MONTH=$(date +%m)
           fi
           echo "Generating payroll for month: $PAYROLL_MONTH"
-          # Run payroll job and ensure payroll.log is always created
-          java -cp target/classes com.hrms.model.service.PayrollJob $PAYROLL_MONTH > payroll.log 2>&1 || echo "Payroll job failed, see payroll.log"
+          java -cp "target/classes:lib/mysql-connector-j-9.4.0.jar" com.hrms.model.service.PayrollJob $PAYROLL_MONTH > payroll.log 2>&1 || echo "Payroll job failed, see payroll.log"
 
       - name: Upload payroll log
         if: always()
