@@ -1,4 +1,4 @@
-name: Payroll Generation
+name: Payroll Generation (Main)
 
 on:
   workflow_dispatch:
@@ -12,8 +12,22 @@ jobs:
   payroll:
     runs-on: windows-latest
 
+    # Add MySQL service
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: Aravind@123
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd "mysqladmin ping --silent"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 3
+
     env:
-      DB_URL: jdbc:mysql://localhost:3306/hrms_project
+      DB_URL: jdbc:mysql://127.0.0.1:3306/hrms_project
       DB_USER: root
       DB_PASSWORD: Aravind@123
       CI: true
@@ -29,11 +43,29 @@ jobs:
           java-version: '21'
           cache: maven
 
+      - name: Wait for MySQL to be ready
+        shell: powershell
+        run: |
+          $maxRetries = 12
+          $retry = 0
+          do {
+              try {
+                  mysql -h 127.0.0.1 -P 3306 -u $env:DB_USER -p$env:DB_PASSWORD -e "SELECT 1;"
+                  Write-Host "MySQL is ready."
+                  break
+              } catch {
+                  Write-Host "Waiting for MySQL..."
+                  Start-Sleep -Seconds 5
+                  $retry++
+              }
+          } while ($retry -lt $maxRetries)
+          if ($retry -eq $maxRetries) { exit 1 }
+
       - name: Reset MySQL Database
         shell: powershell
         run: |
           Write-Host "Resetting MySQL database..."
-          mysql -u $env:DB_USER -p$env:DB_PASSWORD -e "DROP DATABASE IF EXISTS hrms_project; CREATE DATABASE hrms_project;"
+          mysql -h 127.0.0.1 -P 3306 -u $env:DB_USER -p$env:DB_PASSWORD -e "DROP DATABASE IF EXISTS hrms_project; CREATE DATABASE hrms_project;"
 
       - name: Clean Project
         run: mvn clean
@@ -44,14 +76,11 @@ jobs:
       - name: Run Payroll Job
         shell: powershell
         run: |
-          # Determine payroll month
           $payrollMonth = '${{ github.event.inputs.month }}'
           if ([string]::IsNullOrEmpty($payrollMonth)) {
               $payrollMonth = (Get-Date).ToString('MM')
           }
           Write-Host "Generating payroll for month: $payrollMonth"
-
-          # Run Payroll job
           java -cp target/hrms_project-1.0-SNAPSHOT-shaded.jar com.hrms.model.service.PayrollJobs $payrollMonth > payroll.log 2>&1
 
       - name: Upload payroll log
