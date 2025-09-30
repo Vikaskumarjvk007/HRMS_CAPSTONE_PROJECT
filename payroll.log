@@ -9,3 +9,36 @@ java.sql.SQLSyntaxErrorException: Table 'hrms_project.payrolls' doesn't exist
 	at com.hrms.model.service.PayrollJobs.main(PayrollJobs.java:23)
 	at org.codehaus.mojo.exec.ExecJavaMojo$1.run(ExecJavaMojo.java:279)
 	at java.base/java.lang.Thread.run(Thread.java:1583)
+========== Payroll Job Started: 2025-09-30 ==========
+Payroll not generated for 2025-09. Generating now...
+Payroll generation completed for 2025-09.
+========== Payroll Job Ended ==========
+
+========== Payroll Job Started: 2025-09-30 ==========
+Payroll already generated for 2025-09. Exiting.
+========== Payroll Job Ended ==========
+
+========== Payroll Job Started: 2025-09-30 ==========
+Payroll already generated for 2025-09. Exiting.
+========== Payroll Job Ended ==========
+
+========== Payroll Job Started: 2025-09-30 ==========
+Payroll already generated for 2025-09. Exiting.
+========== Payroll Job Ended ==========
+
+========== Payroll Job Started: 2025-09-30 ==========
+Payroll already generated for 2025-09. Exiting.
+========== Payroll Job Ended ==========
+
+========== Payroll Job Started: 2025-09-30 ==========
+Payroll already generated for 2025-09. Exiting.
+========== Payroll Job Ended ==========
+
+========== Payroll Job Started: 2025-09-30 ==========
+Payroll already generated for 2025-09. Exiting.
+========== Payroll Job Ended ==========
+
+========== Payroll Job Started: 2025-09-30 ==========
+Payroll already generated for 2025-09. Exiting.
+========== Payroll Job Ended ==========
+

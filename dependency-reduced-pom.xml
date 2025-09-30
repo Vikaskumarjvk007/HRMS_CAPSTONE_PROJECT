@@ -22,24 +22,16 @@
           <includes>
             <include>**/*Test.java</include>
           </includes>
+          <argLine>-Dfile.encoding=UTF-8</argLine>
         </configuration>
       </plugin>
       <plugin>
         <groupId>org.codehaus.mojo</groupId>
         <artifactId>exec-maven-plugin</artifactId>
         <version>3.1.0</version>
-        <executions>
-          <execution>
-            <id>run-payrolljob</id>
-            <phase>package</phase>
-            <goals>
-              <goal>java</goal>
-            </goals>
-            <configuration>
-              <mainClass>com.hrms.model.service.PayrollJobs</mainClass>
-            </configuration>
-          </execution>
-        </executions>
+        <configuration>
+          <mainClass>com.hrms.model.service.PayrollJobs</mainClass>
+        </configuration>
       </plugin>
       <plugin>
         <artifactId>maven-shade-plugin</artifactId>
@@ -51,11 +43,14 @@
               <goal>shade</goal>
             </goals>
             <configuration>
-              <finalName>${project.artifactId}-${project.version}-shaded</finalName>
+              <shadedArtifactAttached>true</shadedArtifactAttached>
+              <shadedClassifierName>shaded</shadedClassifierName>
               <transformers>
                 <transformer>
                   <mainClass>com.hrms.model.service.PayrollJobs</mainClass>
                 </transformer>
+                <transformer />
+                <transformer />
               </transformers>
               <filters>
                 <filter>
@@ -64,6 +59,12 @@
                     <exclude>META-INF/*.SF</exclude>
                     <exclude>META-INF/*.DSA</exclude>
                     <exclude>META-INF/*.RSA</exclude>
+                    <exclude>META-INF/LICENSE</exclude>
+                    <exclude>META-INF/NOTICE</exclude>
+                    <exclude>META-INF/DEPENDENCIES</exclude>
+                    <exclude>META-INF/NOTICE.txt</exclude>
+                    <exclude>META-INF/LICENSE.txt</exclude>
+                    <exclude>META-INF/MANIFEST.MF</exclude>
                   </excludes>
                 </filter>
               </filters>
@@ -201,7 +202,7 @@
       <dependency>
         <groupId>io.netty</groupId>
         <artifactId>netty-bom</artifactId>
-        <version>4.1.115.Final</version>
+        <version>${netty.version}</version>
         <type>pom</type>
         <scope>import</scope>
       </dependency>
@@ -209,7 +210,15 @@
   </dependencyManagement>
   <properties>
     <maven.compiler.release>${java.version}</maven.compiler.release>
-    <java.version>21</java.version>
+    <netty.version>4.1.115.Final</netty.version>
+    <aws.sdk.version>2.25.60</aws.sdk.version>
+    <slf4j.version>2.0.13</slf4j.version>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <dynamodb.local.version>1.20.0</dynamodb.local.version>
+    <junit.version>5.10.0</junit.version>
+    <sqlite.version>3.45.1.0</sqlite.version>
+    <java.version>21</java.version>
+    <lombok.version>1.18.34</lombok.version>
+    <mysql.version>8.0.33</mysql.version>
   </properties>
 </project>
