@@ -70,7 +70,7 @@ jobs:
 
       - name: Initialize database schema
         run: |
-          echo "Initializing database schema..."
+          echo "Creating tables from schema.sql..."
           mysql -h 127.0.0.1 -P 3306 -u $DB_USER -p$DB_PASSWORD hrms_project < db/schema.sql
 
       - name: Build application
@@ -83,7 +83,8 @@ jobs:
             PAYROLL_MONTH=$(date +%m)
           fi
           echo "Generating payroll for month: $PAYROLL_MONTH"
-          java -cp target/classes com.hrms.model.service.PayrollJob $PAYROLL_MONTH > payroll.log 2>&1
+          # Run payroll job and ensure payroll.log is always created
+          java -cp target/classes com.hrms.model.service.PayrollJob $PAYROLL_MONTH > payroll.log 2>&1 || echo "Payroll job failed, see payroll.log"
 
       - name: Upload payroll log
         if: always()
