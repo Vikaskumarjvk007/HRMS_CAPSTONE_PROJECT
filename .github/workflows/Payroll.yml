@@ -12,6 +12,10 @@ concurrency:
   group: payroll-${{ github.ref }}
   cancel-in-progress: true
 
+# Give the GITHUB_TOKEN write access
+permissions:
+  contents: write
+
 jobs:
   payroll:
     runs-on: ubuntu-latest
@@ -115,12 +119,11 @@ jobs:
           name: payroll-log
           path: payroll.log
 
-      - name: Commit payroll log back to repo
+      # ✅ Commit & push the log file back to the same branch
+      - name: Commit payroll.log
         if: always()
-        uses: ad-m/github-push-action@v0.6.0
+        uses: stefanzweifel/git-auto-commit-action@v5
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
+          commit_message: "chore: update payroll log (month=${{ github.event.inputs.month || 'auto' }})"
+          file_pattern: "payroll.log"
           branch: ${{ github.ref_name }}
-          force: false
-          commit_message: "Update payroll log for month ${{ github.event.inputs.month }}"
-          file: "payroll.log"
