@@ -1,4 +1,4 @@
-name: Monthly Payroll Generation
+name: Payroll Generation
 
 on:
   workflow_dispatch:
