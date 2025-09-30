@@ -70,7 +70,7 @@ jobs:
 
       - name: Initialize database schema
         run: |
-          echo "Creating tables from schema.sql..."
+          echo "Creating payrolls table from schema.sql..."
           mysql -h 127.0.0.1 -P 3306 -u $DB_USER -p$DB_PASSWORD hrms_project < db/schema.sql
 
       - name: Build application
