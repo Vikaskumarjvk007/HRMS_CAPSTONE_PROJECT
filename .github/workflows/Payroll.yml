@@ -98,7 +98,7 @@ jobs:
           PAYROLL_MONTH=${{ github.event.inputs.month }}
           PAYROLL_MONTH=${PAYROLL_MONTH:-$(date +%m)}
           echo "Checking if payroll already exists for month: $PAYROLL_MONTH"
-          
+
           if [ -f payroll.log ] && grep -q "Payroll already generated for $PAYROLL_MONTH" payroll.log; then
             echo "Payroll already generated for $PAYROLL_MONTH. Skipping job."
             exit 0
@@ -121,5 +121,9 @@ jobs:
           git config --global user.name "$GIT_USER_NAME"
           git config --global user.email "$GIT_USER_EMAIL"
           git add payroll.log
-          git diff --staged --quiet || git commit -m "Update payroll log for month $PAYROLL_MONTH"
-          git push https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }} HEAD:${GITHUB_REF_NAME}
+          if ! git diff --staged --quiet; then
+            git commit -m "Update payroll log for month $PAYROLL_MONTH"
+            git push https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }} HEAD:${GITHUB_REF_NAME}
+          else
+            echo "No changes in payroll.log to commit."
+          fi
