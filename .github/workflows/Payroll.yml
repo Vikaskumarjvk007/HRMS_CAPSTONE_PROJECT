@@ -10,9 +10,9 @@ on:
 
 jobs:
   payroll:
-    runs-on: windows-latest
+    runs-on: ubuntu-latest
 
-    # Add MySQL service
+    # MySQL service on Linux runner
     services:
       mysql:
         image: mysql:8.0
@@ -44,28 +44,21 @@ jobs:
           cache: maven
 
       - name: Wait for MySQL to be ready
-        shell: powershell
         run: |
-          $maxRetries = 12
-          $retry = 0
-          do {
-              try {
-                  mysql -h 127.0.0.1 -P 3306 -u $env:DB_USER -p$env:DB_PASSWORD -e "SELECT 1;"
-                  Write-Host "MySQL is ready."
-                  break
-              } catch {
-                  Write-Host "Waiting for MySQL..."
-                  Start-Sleep -Seconds 5
-                  $retry++
-              }
-          } while ($retry -lt $maxRetries)
-          if ($retry -eq $maxRetries) { exit 1 }
+          for i in {1..12}; do
+            if mysql -h 127.0.0.1 -P 3306 -u $DB_USER -p$DB_PASSWORD -e "SELECT 1;" &> /dev/null; then
+              echo "MySQL is ready."
+              break
+            else
+              echo "Waiting for MySQL..."
+              sleep 5
+            fi
+          done
 
       - name: Reset MySQL Database
-        shell: powershell
         run: |
-          Write-Host "Resetting MySQL database..."
-          mysql -h 127.0.0.1 -P 3306 -u $env:DB_USER -p$env:DB_PASSWORD -e "DROP DATABASE IF EXISTS hrms_project; CREATE DATABASE hrms_project;"
+          echo "Resetting MySQL database..."
+          mysql -h 127.0.0.1 -P 3306 -u $DB_USER -p$DB_PASSWORD -e "DROP DATABASE IF EXISTS hrms_project; CREATE DATABASE hrms_project;"
 
       - name: Clean Project
         run: mvn clean
@@ -74,14 +67,13 @@ jobs:
         run: mvn package -DskipTests
 
       - name: Run Payroll Job
-        shell: powershell
         run: |
-          $payrollMonth = '${{ github.event.inputs.month }}'
-          if ([string]::IsNullOrEmpty($payrollMonth)) {
-              $payrollMonth = (Get-Date).ToString('MM')
-          }
-          Write-Host "Generating payroll for month: $payrollMonth"
-          java -cp target/hrms_project-1.0-SNAPSHOT-shaded.jar com.hrms.model.service.PayrollJobs $payrollMonth > payroll.log 2>&1
+          PAYROLL_MONTH=${{ github.event.inputs.month }}
+          if [ -z "$PAYROLL_MONTH" ]; then
+            PAYROLL_MONTH=$(date +%m)
+          fi
+          echo "Generating payroll for month: $PAYROLL_MONTH"
+          java -cp target/hrms_project-1.0-SNAPSHOT-shaded.jar com.hrms.model.service.PayrollJobs $PAYROLL_MONTH > payroll.log 2>&1
 
       - name: Upload payroll log
         if: always()
