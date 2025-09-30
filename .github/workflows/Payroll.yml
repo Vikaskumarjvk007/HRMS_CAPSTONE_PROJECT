@@ -93,12 +93,17 @@ jobs:
       - name: Build application
         run: mvn clean package -DskipTests
 
-      - name: Run Payroll Job
+      - name: Run Payroll Job (skip if already generated)
         run: |
           PAYROLL_MONTH=${{ github.event.inputs.month }}
-          if [ -z "$PAYROLL_MONTH" ]; then
-            PAYROLL_MONTH=$(date +%m)
+          PAYROLL_MONTH=${PAYROLL_MONTH:-$(date +%m)}
+          echo "Checking if payroll already exists for month: $PAYROLL_MONTH"
+          
+          if [ -f payroll.log ] && grep -q "Payroll already generated for $PAYROLL_MONTH" payroll.log; then
+            echo "Payroll already generated for $PAYROLL_MONTH. Skipping job."
+            exit 0
           fi
+
           echo "Generating payroll for month: $PAYROLL_MONTH"
           java -jar target/hrms_project-1.0-SNAPSHOT-shaded.jar $PAYROLL_MONTH > payroll.log 2>&1 || echo "Payroll job failed, see payroll.log"
           tail -n 20 payroll.log
@@ -117,6 +122,4 @@ jobs:
           git config --global user.email "$GIT_USER_EMAIL"
           git add payroll.log
           git diff --staged --quiet || git commit -m "Update payroll log for month $PAYROLL_MONTH"
-          git push origin HEAD:${GITHUB_REF_NAME}
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          git push https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }} HEAD:${GITHUB_REF_NAME}
