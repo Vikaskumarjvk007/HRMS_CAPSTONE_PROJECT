@@ -121,9 +121,9 @@ jobs:
           git config --global user.name "$GIT_USER_NAME"
           git config --global user.email "$GIT_USER_EMAIL"
           git add payroll.log
-          if ! git diff --staged --quiet; then
-            git commit -m "Update payroll log for month $PAYROLL_MONTH"
-            git push https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }} HEAD:${GITHUB_REF_NAME}
-          else
-            echo "No changes in payroll.log to commit."
-          fi
+          git diff --staged --quiet || git commit -m "Update payroll log for month $PAYROLL_MONTH"
+          git push https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git HEAD:${GITHUB_REF_NAME}
+        env:
+          GIT_USER_NAME: github-actions
+          GIT_USER_EMAIL: aravindkasanagottu@gmail.com
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
