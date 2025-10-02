@@ -1,6 +1,6 @@
 Payroll job started. Check payroll.log for details.
 Error during payroll job: Unknown column 'pay_date' in 'where clause'
-========== Payroll Job Started: 2025-09-30 ==========
+========== Payroll Job Started: 2025-10-01 ==========
 Error during payroll job: Unknown column 'pay_date' in 'where clause'
 java.sql.SQLSyntaxErrorException: Unknown column 'pay_date' in 'where clause'
 	at com.mysql.cj.jdbc.exceptions.SQLError.createSQLException(SQLError.java:121)
