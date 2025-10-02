@@ -4,7 +4,7 @@ import com.hrms.model.*;
 import com.hrms.model.dao.*;
 import java.time.LocalDate;
 import java.util.*;
-//git"C:\Program Files\Git\bin\git.exe"
+
 public class AdminApp {
 
     public static void main(String[] args) {
