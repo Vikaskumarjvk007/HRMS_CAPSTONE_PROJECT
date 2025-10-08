@@ -1,11 +1,10 @@
 Payroll job started. Check payroll.log for details.
-Error during payroll job: Unknown column 'pay_date' in 'where clause'
-========== Payroll Job Started: 2025-10-01 ==========
-Error during payroll job: Unknown column 'pay_date' in 'where clause'
-java.sql.SQLSyntaxErrorException: Unknown column 'pay_date' in 'where clause'
-	at com.mysql.cj.jdbc.exceptions.SQLError.createSQLException(SQLError.java:121)
-	at com.mysql.cj.jdbc.exceptions.SQLExceptionsMapping.translateException(SQLExceptionsMapping.java:122)
-	at com.mysql.cj.jdbc.ClientPreparedStatement.executeInternal(ClientPreparedStatement.java:916)
-	at com.mysql.cj.jdbc.ClientPreparedStatement.executeQuery(ClientPreparedStatement.java:972)
-	at com.hrms.model.service.PayrollJobs.run(PayrollJobs.java:52)
-	at com.hrms.model.service.PayrollJobs.main(PayrollJobs.java:23)
+Payroll not generated for 2025-10. Generating now...
+❌ Error fetching employees: Table 'hrms_project.employees' doesn't exist
+❌ No employees found!
+Payroll generation completed for 2025-10.
+========== Payroll Job Started: 2025-10-08 ==========
+Payroll not generated for 2025-10. Generating now...
+Payroll generation completed for 2025-10.
+========== Payroll Job Ended ==========
+
