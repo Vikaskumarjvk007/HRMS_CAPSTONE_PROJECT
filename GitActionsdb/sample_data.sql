@@ -4,7 +4,7 @@
 INSERT INTO employees (name, department_id, salary, email, phone_number, date_of_joining, password) VALUES
 ('John Smith', 1, 55000.00, 'john.smith@company.com', '555-0101', '2023-01-15', 'pass123'),
 ('Sarah Johnson', 2, 62000.00, 'sarah.j@company.com', '555-0102', '2023-02-20', 'pass123'),
-('Michael Brown', 3, 75000.00, 'michael.b@company.com', '555-0103', '2023-03-10', 'pass123'),
+('Michael Brown', 3, 300000.00, 'michael.b@company.com', '555-0103', '2023-03-10', 'pass123'),
 ('Emily Davis', 3, 72000.00, 'emily.d@company.com', '555-0104', '2023-04-05', 'pass123'),
 ('David Wilson', 4, 58000.00, 'david.w@company.com', '555-0105', '2023-05-12', 'pass123'),
 ('Jessica Martinez', 1, 51000.00, 'jessica.m@company.com', '555-0106', '2023-06-18', 'pass123'),
