@@ -9,7 +9,7 @@ public class DBConnection {
     // Fallback local DB credentials (used if env variables are not set)
     private static final String LOCAL_URL = "jdbc:mysql://localhost:3306/hrms_project";
     private static final String LOCAL_USER = "root";
-    private static final String LOCAL_PASSWORD = "Aravind@123";
+    private static final String LOCAL_PASSWORD = "root";
 
     public static Connection getConnection() throws SQLException {
         // Try to get credentials from environment variables first (GitHub Actions)

@@ -14,7 +14,7 @@ public class PayrollJobs {
     // Fallback local DB credentials
     private static final String LOCAL_URL = "jdbc:mysql://localhost:3306/hrms_project";
     private static final String LOCAL_USER = "root";
-    private static final String LOCAL_PASSWORD = "Aravind@123";
+    private static final String LOCAL_PASSWORD = "root";
 
     private static final String LOG_FILE = "payroll.log";
 

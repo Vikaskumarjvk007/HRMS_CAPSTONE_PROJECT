@@ -12,21 +12,29 @@ import java.time.LocalDate;
 import java.util.*;
 
 public class DynamoDBService {
-    private final DynamoDbClient dynamoDb;
+    private DynamoDbClient dynamoDb;
     private final String tableName = "LeaveRequests";
+    private boolean isAvailable = false;
 
     public DynamoDBService() {
-        dynamoDb = DynamoDbClient.builder()
-                .region(Region.US_EAST_1)
-                .credentialsProvider(
-                        StaticCredentialsProvider.create(
-                                AwsBasicCredentials.create("dummyKey", "dummySecret")
-                        )
-                )
-                .endpointOverride(URI.create("http://localhost:8000")) // Local DynamoDB
-                .build();
+        try {
+            dynamoDb = DynamoDbClient.builder()
+                    .region(Region.US_EAST_1)
+                    .credentialsProvider(
+                            StaticCredentialsProvider.create(
+                                    AwsBasicCredentials.create("dummyKey", "dummySecret")
+                            )
+                    )
+                    .endpointOverride(URI.create("http://localhost:8000")) // Local DynamoDB
+                    .build();
 
-        ensureTableExists();
+            ensureTableExists();
+            isAvailable = true;
+        } catch (Exception e) {
+            System.out.println("⚠️ DynamoDB Local not available. DynamoDB features will be disabled.");
+            System.out.println("   To use DynamoDB features, start DynamoDB Local on port 8000.");
+            isAvailable = false;
+        }
     }
 
     // ✅ Ensure table exists
@@ -63,8 +71,16 @@ public class DynamoDBService {
         }
     }
 
+    public boolean isAvailable() {
+        return isAvailable;
+    }
+
     // ➕ Add Leave Request (use requestId from object)
     public void addLeaveRequest(LeaveRequest lr) {
+        if (!isAvailable) {
+            System.out.println("⚠️ DynamoDB not available. Operation skipped.");
+            return;
+        }
         Map<String, AttributeValue> item = new HashMap<>();
         item.put("requestId", AttributeValue.builder().s(lr.getRequestId()).build()); // use requestId from object
         item.put("employeeId", AttributeValue.builder().n(String.valueOf(lr.getEmployeeId())).build());
@@ -86,6 +102,9 @@ public class DynamoDBService {
 
     // 📋 Get All Leave Requests
     public List<LeaveRequest> getAllLeaveRequests() {
+        if (!isAvailable) {
+            return new ArrayList<>();
+        }
         List<LeaveRequest> list = new ArrayList<>();
         ScanResponse response = dynamoDb.scan(ScanRequest.builder()
                 .tableName(tableName)
@@ -99,6 +118,9 @@ public class DynamoDBService {
 
     // 📋 Get Leave Requests by Employee ID
     public List<LeaveRequest> getLeaveRequestsByEmployee(int employeeId) {
+        if (!isAvailable) {
+            return new ArrayList<>();
+        }
         List<LeaveRequest> list = new ArrayList<>();
         ScanResponse response = dynamoDb.scan(ScanRequest.builder()
                 .tableName(tableName)
@@ -115,6 +137,9 @@ public class DynamoDBService {
 
     // 📋 Get All Pending Requests (for Admin)
     public List<LeaveRequest> getAllPendingLeaveRequests() {
+        if (!isAvailable) {
+            return new ArrayList<>();
+        }
         List<LeaveRequest> pending = new ArrayList<>();
         ScanResponse response = dynamoDb.scan(ScanRequest.builder()
                 .tableName(tableName)
@@ -131,6 +156,10 @@ public class DynamoDBService {
 
     // ✏️ Update Leave Status by employeeId + startDate
     public void updateLeaveStatus(int employeeId, LocalDate startDate, String status) {
+        if (!isAvailable) {
+            System.out.println("⚠️ DynamoDB not available. Operation skipped.");
+            return;
+        }
         String requestId = getRequestIdForLeave(employeeId, startDate);
 
         if (requestId == null) {
@@ -151,6 +180,10 @@ public class DynamoDBService {
 
     // ❌ Delete Leave Request by requestId
     public void deleteLeaveRequest(String requestId) {
+        if (!isAvailable) {
+            System.out.println("⚠️ DynamoDB not available. Operation skipped.");
+            return;
+        }
         dynamoDb.deleteItem(DeleteItemRequest.builder()
                 .tableName(tableName)
                 .key(Map.of("requestId", AttributeValue.builder().s(requestId).build()))
@@ -161,6 +194,9 @@ public class DynamoDBService {
 
     // 📋 Get Leave Requests by Status
     public List<LeaveRequest> getLeaveRequestsByStatus(String status) {
+        if (!isAvailable) {
+            return new ArrayList<>();
+        }
         List<LeaveRequest> list = new ArrayList<>();
         ScanResponse response = dynamoDb.scan(ScanRequest.builder()
                 .tableName(tableName)
