@@ -1,5 +1,11 @@
 **🏢 Human Resource Management System (HRMS)**
 
+[![CI Build](https://github.com/Vikaskumarjvk007/HRMS_CAPSTONE_PROJECT/actions/workflows/ci-build-test.yml/badge.svg)](https://github.com/Vikaskumarjvk007/HRMS_CAPSTONE_PROJECT/actions)
+[![Payroll](https://github.com/Vikaskumarjvk007/HRMS_CAPSTONE_PROJECT/actions/workflows/Payroll.yml/badge.svg)](https://github.com/Vikaskumarjvk007/HRMS_CAPSTONE_PROJECT/actions)
+
+**Developer:** Vikas Kumar  
+**Repository:** [github.com/Vikaskumarjvk007/HRMS_CAPSTONE_PROJECT](https://github.com/Vikaskumarjvk007/HRMS_CAPSTONE_PROJECT)
+
 **1\. Introduction**
 
 **Human Resource Management System (HRMS)** is a **Java-based application** that automates HR tasks such as **employee management, leave requests, payroll generation, and attendance tracking**.
@@ -139,3 +145,21 @@ Generating payroll for October 2025...
 ✅ Payroll generated successfully for 5 employees.
 
 ⚠ Skipped: Payroll already exists for
+
+---
+
+## 👨‍💻 Author
+
+**Vikas Kumar**  
+- GitHub: [@Vikaskumarjvk007](https://github.com/Vikaskumarjvk007)
+- Repository: [HRMS_CAPSTONE_PROJECT](https://github.com/Vikaskumarjvk007/HRMS_CAPSTONE_PROJECT)
+
+---
+
+## 📄 License
+
+This project is created as a capstone project for educational purposes.
+
+---
+
+*Last Updated: October 15, 2025*

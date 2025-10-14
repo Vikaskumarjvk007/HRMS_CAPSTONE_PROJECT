@@ -237,6 +237,7 @@ The application successfully handles:
 
 ## Contact & Support
 
+- **Repository:** https://github.com/Vikaskumarjvk007/HRMS_CAPSTONE_PROJECT
 - **Admin Login:** admin / admin@123
 - **Test Employee:** ID 1-8 / pass123
 - **Database:** hrms_project on localhost:3306
@@ -245,3 +246,4 @@ The application successfully handles:
 ---
 
 *Report generated automatically by HRMS Verification System*
+*Project by: Vikas Kumar*
