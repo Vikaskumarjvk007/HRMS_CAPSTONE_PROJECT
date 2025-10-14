@@ -50,14 +50,19 @@ jobs:
       - name: Check out repository
         uses: actions/checkout@v4
 
-      - name: Verify schema file exists
+      - name: Verify schema files exist
         run: |
           echo "Current directory: $(pwd)"
-          ls -R
-          if [ ! -f GitActionsdb/schema.sql ]; then
-            echo "ERROR: GitActionsdb/schema.sql not found!"
+          echo "Checking for required SQL files..."
+          if [ ! -f GitActionsdb/complete_schema.sql ]; then
+            echo "ERROR: GitActionsdb/complete_schema.sql not found!"
             exit 1
           fi
+          if [ ! -f GitActionsdb/sample_data.sql ]; then
+            echo "ERROR: GitActionsdb/sample_data.sql not found!"
+            exit 1
+          fi
+          echo "✅ All required SQL files found"
 
       - name: Set up Temurin JDK 21
         uses: actions/setup-java@v4
@@ -97,7 +102,12 @@ jobs:
 
       - name: Initialize database schema
         run: |
-          mysql -h 127.0.0.1 -P 3306 -u $DB_USER -p$DB_PASSWORD hrms_project < GitActionsdb/schema.sql
+          echo "Setting up complete database schema..."
+          mysql -h 127.0.0.1 -P 3306 -u $DB_USER -p$DB_PASSWORD hrms_project < GitActionsdb/complete_schema.sql
+          echo "Loading sample data..."
+          mysql -h 127.0.0.1 -P 3306 -u $DB_USER -p$DB_PASSWORD hrms_project < GitActionsdb/sample_data.sql
+          echo "Verifying database setup..."
+          mysql -h 127.0.0.1 -P 3306 -u $DB_USER -p$DB_PASSWORD hrms_project -e "SHOW TABLES;"
 
       - name: Build application
         run: mvn clean package -DskipTests

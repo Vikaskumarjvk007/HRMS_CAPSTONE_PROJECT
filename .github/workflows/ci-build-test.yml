@@ -1,0 +1,145 @@
+name: CI - Build and Test
+
+on:
+  push:
+    branches: [ master, main, develop ]
+  pull_request:
+    branches: [ master, main ]
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  checks: write
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: hrms_project
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd "mysqladmin ping --silent"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      DB_URL: jdbc:mysql://127.0.0.1:3306/hrms_project
+      DB_USER: root
+      DB_PASSWORD: root
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+          cache: 'maven'
+
+      - name: Cache Maven packages
+        uses: actions/cache@v3
+        with:
+          path: ~/.m2/repository
+          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+          restore-keys: |
+            ${{ runner.os }}-maven-
+
+      - name: Display Java and Maven versions
+        run: |
+          java -version
+          mvn -version
+
+      - name: Wait for MySQL
+        run: |
+          echo "Waiting for MySQL to be ready..."
+          for i in {1..30}; do
+            if mysql -h 127.0.0.1 -P 3306 -u root -proot -e "SELECT 1;" &> /dev/null; then
+              echo "✅ MySQL is ready!"
+              break
+            fi
+            echo "Attempt $i: MySQL not ready yet..."
+            sleep 2
+          done
+
+      - name: Setup database schema
+        run: |
+          echo "Creating database schema..."
+          mysql -h 127.0.0.1 -P 3306 -u root -proot hrms_project < GitActionsdb/complete_schema.sql
+          echo "Loading sample data..."
+          mysql -h 127.0.0.1 -P 3306 -u root -proot hrms_project < GitActionsdb/sample_data.sql
+          
+      - name: Verify database setup
+        run: |
+          echo "Verifying tables..."
+          mysql -h 127.0.0.1 -P 3306 -u root -proot hrms_project -e "SHOW TABLES;"
+          echo "Checking data counts..."
+          mysql -h 127.0.0.1 -P 3306 -u root -proot hrms_project -e "
+            SELECT 'admins' as tbl, COUNT(*) as count FROM admins 
+            UNION SELECT 'departments', COUNT(*) FROM departments 
+            UNION SELECT 'employees', COUNT(*) FROM employees 
+            UNION SELECT 'attendance', COUNT(*) FROM attendance 
+            UNION SELECT 'leave_requests', COUNT(*) FROM leave_requests 
+            UNION SELECT 'payrolls', COUNT(*) FROM payrolls;"
+
+      - name: Compile project
+        run: mvn clean compile
+
+      - name: Run tests
+        run: mvn test
+
+      - name: Package application
+        run: mvn package -DskipTests
+
+      - name: Run verification test
+        run: |
+          mvn test-compile
+          java -cp "target/classes:target/test-classes:target/hrms_project-1.0-SNAPSHOT-shaded.jar" \
+            com.hrms.test.HRMSVerificationTest
+
+      - name: Upload build artifacts
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: hrms-application-jar
+          path: |
+            target/*.jar
+            !target/*-javadoc.jar
+            !target/*-sources.jar
+          retention-days: 30
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results
+          path: |
+            target/surefire-reports/
+            target/test-classes/
+          retention-days: 7
+
+      - name: Build status summary
+        if: always()
+        run: |
+          echo "## 🏗️ Build Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "- **Status**: ${{ job.status }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Java Version**: 21" >> $GITHUB_STEP_SUMMARY
+          echo "- **Maven Version**: $(mvn -version | head -n 1)" >> $GITHUB_STEP_SUMMARY
+          echo "- **Database**: MySQL 8.0" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### 📦 Artifacts" >> $GITHUB_STEP_SUMMARY
+          echo "- Application JAR files uploaded" >> $GITHUB_STEP_SUMMARY
+          echo "- Test results available" >> $GITHUB_STEP_SUMMARY

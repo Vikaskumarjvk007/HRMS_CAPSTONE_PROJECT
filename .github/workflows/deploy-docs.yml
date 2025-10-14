@@ -1,0 +1,58 @@
+name: Deploy Documentation
+
+on:
+  push:
+    branches: [ master, main ]
+    paths:
+      - '**.md'
+      - 'docs/**'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+jobs:
+  deploy-docs:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup documentation structure
+        run: |
+          mkdir -p docs
+          cp BUILD_TEST_REPORT.md docs/test-report.md
+          cp README.md docs/index.md
+          
+      - name: Create docs index
+        run: |
+          cat > docs/README.md << 'EOF'
+          # HRMS Application Documentation
+          
+          ## 📚 Available Documentation
+          
+          - [Test Report](test-report.md) - Complete build and test verification
+          - [Main README](index.md) - Project overview and setup
+          
+          ## 🚀 Quick Links
+          
+          - [GitHub Repository](https://github.com/Vikaskumarjvk007/HRMS_CAPSTONE_PROJECT)
+          - [Build Status](https://github.com/Vikaskumarjvk007/HRMS_CAPSTONE_PROJECT/actions)
+          
+          EOF
+
+      - name: Upload documentation
+        uses: actions/upload-artifact@v4
+        with:
+          name: documentation
+          path: docs/
+          retention-days: 90
+
+      - name: Documentation summary
+        run: |
+          echo "## 📖 Documentation Deployed" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Documentation has been generated and uploaded." >> $GITHUB_STEP_SUMMARY

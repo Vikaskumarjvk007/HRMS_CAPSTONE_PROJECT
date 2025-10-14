@@ -1,0 +1,157 @@
+name: Create Release
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Release version (e.g., v1.0.0)'
+        required: true
+        default: 'v1.0.0'
+
+permissions:
+  contents: write
+
+jobs:
+  create-release:
+    runs-on: ubuntu-latest
+    
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: hrms_project
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd "mysqladmin ping --silent"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+          cache: 'maven'
+
+      - name: Get version
+        id: get_version
+        run: |
+          if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
+            echo "version=${{ github.event.inputs.version }}" >> $GITHUB_OUTPUT
+          else
+            echo "version=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Wait for MySQL
+        run: |
+          for i in {1..30}; do
+            if mysql -h 127.0.0.1 -P 3306 -u root -proot -e "SELECT 1;" &> /dev/null; then
+              echo "✅ MySQL is ready!"
+              break
+            fi
+            sleep 2
+          done
+
+      - name: Setup database
+        run: |
+          mysql -h 127.0.0.1 -P 3306 -u root -proot hrms_project < GitActionsdb/complete_schema.sql
+
+      - name: Build and test
+        run: |
+          mvn clean package
+          mvn test
+
+      - name: Run verification
+        run: |
+          mvn test-compile
+          java -cp "target/classes:target/test-classes:target/hrms_project-1.0-SNAPSHOT-shaded.jar" \
+            com.hrms.test.HRMSVerificationTest > verification-report.txt
+
+      - name: Create release package
+        run: |
+          mkdir -p release-package
+          cp target/hrms_project-1.0-SNAPSHOT-shaded.jar release-package/hrms-application-${{ steps.get_version.outputs.version }}.jar
+          cp BUILD_TEST_REPORT.md release-package/
+          cp README.md release-package/
+          cp -r GitActionsdb release-package/
+          cp verification-report.txt release-package/
+          
+          # Create release notes
+          cat > release-package/RELEASE_NOTES.md << 'EOF'
+          # HRMS Application Release ${{ steps.get_version.outputs.version }}
+          
+          ## 📦 What's Included
+          
+          - **Application JAR**: Fully packaged with all dependencies
+          - **Database Scripts**: Schema and sample data
+          - **Documentation**: Build report and verification results
+          
+          ## 🚀 Quick Start
+          
+          1. Setup MySQL database:
+             ```bash
+             mysql -u root -p < GitActionsdb/complete_schema.sql
+             mysql -u root -p hrms_project < GitActionsdb/sample_data.sql
+             ```
+          
+          2. Run the application:
+             ```bash
+             java -jar hrms-application-${{ steps.get_version.outputs.version }}.jar
+             ```
+          
+          ## 🔑 Default Credentials
+          
+          - **Admin**: admin / admin@123
+          - **Employee**: ID 1-8 / pass123
+          
+          ## ✅ Verification Status
+          
+          All tests passed successfully. See verification-report.txt for details.
+          EOF
+          
+          cd release-package
+          zip -r ../hrms-release-${{ steps.get_version.outputs.version }}.zip .
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ steps.get_version.outputs.version }}
+          name: HRMS Application ${{ steps.get_version.outputs.version }}
+          body_path: release-package/RELEASE_NOTES.md
+          files: |
+            hrms-release-${{ steps.get_version.outputs.version }}.zip
+            release-package/hrms-application-${{ steps.get_version.outputs.version }}.jar
+            release-package/BUILD_TEST_REPORT.md
+            release-package/verification-report.txt
+          draft: false
+          prerelease: false
+
+      - name: Upload release artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-package-${{ steps.get_version.outputs.version }}
+          path: release-package/
+          retention-days: 90
+
+      - name: Release summary
+        run: |
+          echo "## 🎉 Release Created: ${{ steps.get_version.outputs.version }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### 📦 Release Contents" >> $GITHUB_STEP_SUMMARY
+          echo "- Application JAR with all dependencies" >> $GITHUB_STEP_SUMMARY
+          echo "- Database setup scripts" >> $GITHUB_STEP_SUMMARY
+          echo "- Complete documentation" >> $GITHUB_STEP_SUMMARY
+          echo "- Verification test results" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### 🔗 Links" >> $GITHUB_STEP_SUMMARY
+          echo "- [View Release](https://github.com/${{ github.repository }}/releases/tag/${{ steps.get_version.outputs.version }})" >> $GITHUB_STEP_SUMMARY
