@@ -1,165 +1,120 @@
-**🏢 Human Resource Management System (HRMS)**
+# HRMS - Human Resource Management System
 
 [![CI Build](https://github.com/Vikaskumarjvk007/HRMS_CAPSTONE_PROJECT/actions/workflows/ci-build-test.yml/badge.svg)](https://github.com/Vikaskumarjvk007/HRMS_CAPSTONE_PROJECT/actions)
 [![Payroll](https://github.com/Vikaskumarjvk007/HRMS_CAPSTONE_PROJECT/actions/workflows/Payroll.yml/badge.svg)](https://github.com/Vikaskumarjvk007/HRMS_CAPSTONE_PROJECT/actions)
 
-**Developer:** Vikas Kumar  
-**Repository:** [github.com/Vikaskumarjvk007/HRMS_CAPSTONE_PROJECT](https://github.com/Vikaskumarjvk007/HRMS_CAPSTONE_PROJECT)
+## About This Project
 
-**1\. Introduction**
+This is my capstone project for the training program. I've built a Human Resource Management System using Java that helps manage employee data, track attendance, handle leave requests, and process payroll.
 
-**Human Resource Management System (HRMS)** is a **Java-based application** that automates HR tasks such as **employee management, leave requests, payroll generation, and attendance tracking**.
+The project uses both MySQL and AWS DynamoDB for data storage. MySQL handles the main employee and payroll data, while DynamoDB is used for leave requests (wanted to try out AWS services).
 
-**Built with:**
+## What It Does
 
-- ☕ **Java OOP principles**
-- 🗄 **JDBC + MySQL**
-- ☁ **AWS DynamoDB**
-- ⚙ **Maven + GitHub Actions (CI/CD)**
+The system has two main interfaces - one for admins and one for employees:
 
-**2\. Objectives**
+**Admin Features:**
+- Add/update/delete employee records
+- View and approve leave requests
+- Generate monthly payroll
+- Track employee attendance
+- Manage departments
 
-- ✔ Lightweight HRMS solution using **Java + JDBC**
-- ✔ Dual database integration (**MySQL + DynamoDB**)
-- ✔ **Automated Payroll** (once per month, duplicate-protected)
-- ✔ Fully integrated **CI/CD Pipeline**
+**Employee Features:**
+- View their own details
+- Submit leave requests
+- Check payroll information
+- View attendance history
 
-**3\. Features**
+## Technologies Used
 
-- 👨‍💼 Employee Management (CRUD)
-- 📅 Leave Requests (stored in **DynamoDB**)
-- 💰 Payroll Automation (monthly)
-- 📝 Attendance Tracking
-- 🔒 Secure **Admin Login**
+- Java (using JDK 17)
+- MySQL database
+- AWS DynamoDB
+- JDBC for database connectivity
+- Maven for build management
+- JUnit for testing
+- GitHub Actions for CI/CD
 
-**4\. Technology Stack**
+## How I Structured the Code
 
-- **Language** → Java 17+
-- **Databases** → MySQL + DynamoDB Local
-- **Build Tool** → Maven
-- **Testing** → JUnit
-- **Version Control** → Git & GitHub
-- **CI/CD** → GitHub Actions + Qodana
+I tried to follow a layered architecture approach:
 
-**5\. Architecture**
+```
+src/main/java/com/hrms/model/
+├── controllers/     - handles user input (AdminController, EmployeeController)
+├── service/         - business logic (PayrollService, AdminApp, EmployeeApp)
+├── dao/             - database operations (EmployeeDAO, PayrollDAO, etc.)
+├── helper/          - utility classes (LeaveCalendar)
+└── [Model classes]  - Employee, Payroll, Attendance, LeaveRequest, etc.
+```
 
-- **Controllers Layer** → CLI input/output
-- **Service Layer** → Business logic
-- **DAO Layer** → MySQL (JDBC) + DynamoDB (AWS SDK)
-- **Models** → Employee, Payroll, LeaveRequest
-- **Helpers** → Utilities (LeaveCalendar)
+The flow basically goes: User Input -> Controller -> Service -> DAO -> Database
 
-**Flow**:  
-Controllers → Services → DAO → MySQL/DynamoDB
+## Setup Instructions
 
-**6\. Project Structure**
+1. Clone the repository
+2. Make sure you have Java 17+ and MySQL installed
+3. Create a database named `hrms_db`
+4. Run the schema file from `db/schema.sql` to create tables
+5. Update database credentials in `DBConnection.java`
+6. For DynamoDB, you'll need AWS credentials configured
+7. Build the project: `mvn clean install`
+8. Run: `mvn exec:java -Dexec.mainClass="com.hrms.model.service.AdminApp"`
 
-hrms_project/
+## Sample Usage
 
-├── controllers/ # AdminController, EmployeeController
+When you run the admin app, you'll see something like:
 
-├── dao/ # EmployeeDAO, PayrollDAO, LeaveRequestDAO
+```
+=====================================
+    HRMS - Admin Dashboard
+=====================================
+1. Manage Employees
+2. Manage Leave Requests
+3. Generate Payroll
+4. View Attendance
+5. Logout
+-------------------------------------
+Enter your choice:
+```
 
-├── service/ # PayrollService, LeaveDynamoService
+For payroll generation, the system automatically runs once per month and makes sure not to generate duplicate payrolls for the same month.
 
-├── helper/ # LeaveCalendar
+## Testing
 
-├── model/ # Employee, Payroll, LeaveRequest
+I've added some JUnit tests for the payroll service. You can run them with:
+```
+mvn test
+```
 
-├── test/ # PayrollServiceTest
+There's also a GitHub Actions workflow that runs tests automatically on push.
 
-├── pom.xml # Maven dependencies
+## Known Issues
 
-└── README.md # Documentation
+- Still working on improving the error handling in some places
+- The UI is command-line based, might add a GUI later
+- Need to add more test coverage
 
-**7\. Admin Menu (CLI Demo)**
+## What I Learned
 
-\=====================================
+This project helped me understand:
+- Working with databases using JDBC
+- Integrating multiple databases (MySQL + DynamoDB)
+- Implementing DAO pattern
+- Writing automated tests
+- Setting up CI/CD pipelines
+- Using Maven for dependency management
 
-HRMS - Admin Dashboard
+## Future Improvements
 
-\=====================================
-
-1\. Manage Employees
-
-2\. Manage Leave Requests
-
-3\. Generate Payroll
-
-4\. View Attendance
-
-5\. Logout
-
-\-------------------------------------
-
-Enter your choice: _
-
-**8\. Sample CLI Outputs**
-
-**🔑 Admin Login**
-
-Welcome to HRMS Admin Portal
-
-Enter Username: admin
-
-Enter Password: \*\*\*\*
-
-✅ Login Successful!
-
-**👨‍💼 Add Employee**
-
-\--- Employee Management ---
-
-Enter Employee Name: John Doe
-
-Enter Email: <john.doe@example.com>
-
-Enter Role: Developer
-
-Enter Salary: 60000
-
-✅ Employee added successfully!
-
-**📝 Leave Request**
-
-\--- Leave Request ---
-
-Enter Employee ID: 101
-
-Enter Start Date (YYYY-MM-DD): 2025-10-15
-
-Enter End Date (YYYY-MM-DD): 2025-10-17
-
-✅ Leave request submitted to DynamoDB!
-
-**💰 Payroll Generation**
-
-\--- Payroll Job Running ---
-
-Fetching employees...
-
-Calculating salary components...
-
-Generating payroll for October 2025...
-
-✅ Payroll generated successfully for 5 employees.
-
-⚠ Skipped: Payroll already exists for
+If I get time, I'd like to add:
+- A proper web interface
+- Email notifications for leave approvals
+- Better reporting features
+- Performance optimization for large datasets
 
 ---
 
-## 👨‍💻 Author
-
-**Vikas Kumar**  
-- GitHub: [@Vikaskumarjvk007](https://github.com/Vikaskumarjvk007)
-- Repository: [HRMS_CAPSTONE_PROJECT](https://github.com/Vikaskumarjvk007/HRMS_CAPSTONE_PROJECT)
-
----
-
-## 📄 License
-
-This project is created as a capstone project for educational purposes.
-
----
-
-*Last Updated: October 15, 2025*
+Developed by Vikas Kumar  
+GitHub: [@Vikaskumarjvk007](https://github.com/Vikaskumarjvk007)
